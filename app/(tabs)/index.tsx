@@ -1,10 +1,12 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Tab() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [photo, setPhoto] = useState<string | null>(null); // To store the photo
+  const cameraViewRef = useRef<CameraView | null>(null);
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -25,12 +27,30 @@ export default function Tab() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
+  const takePicture = async () => {
+    try {
+      if (cameraViewRef.current) {
+        const picture = await cameraViewRef.current.takePictureAsync();
+        if (picture && picture.uri) {
+          setPhoto(picture.uri);
+          console.log("Saved the photo.");
+        } else {
+          console.error("Error: Picture is undefined or missing URI.");
+        }
+      } else {
+        console.error("Error: cameraViewRef.current is null.");
+      }
+    } catch (error) {
+      console.error("Error taking picture: ", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing}>
+      <CameraView style={styles.camera} facing={facing} ref={cameraViewRef}>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-            <Text style={styles.text}>Flip Camera</Text>
+          <TouchableOpacity style={styles.button} onPress={takePicture}>
+            <Text style={styles.text}>Take Picture</Text>
           </TouchableOpacity>
         </View>
       </CameraView>
