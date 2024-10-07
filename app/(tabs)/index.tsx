@@ -1,30 +1,24 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
 
 export default function Tab() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
-  const [photo, setPhoto] = useState<string | null>(null); // To store the photo
+  const [photos, setPhotos] = useState<string[]>([]); // Store multiple photos
   const cameraViewRef = useRef<CameraView | null>(null);
 
   if (!permission) {
-    // Camera permissions are still loading.
     return <View />;
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button onPress={requestPermission} title="Grant permission" />
       </View>
     );
-  }
-
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
   const takePicture = async () => {
@@ -32,16 +26,21 @@ export default function Tab() {
       if (cameraViewRef.current) {
         const picture = await cameraViewRef.current.takePictureAsync();
         if (picture && picture.uri) {
-          setPhoto(picture.uri);
-          console.log("Saved the photo.");
-        } else {
-          console.error("Error: Picture is undefined or missing URI.");
+          const newPhotos = [...photos, picture.uri];
+          setPhotos(newPhotos); // Save photos in state
+
+          // Save photos in localStorage for web
+          if (Platform.OS === 'web') {
+            const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
+            storedPhotos.push(picture.uri);
+            localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
+          }
+
+          console.log('Photo saved:', picture.uri);
         }
-      } else {
-        console.error("Error: cameraViewRef.current is null.");
       }
     } catch (error) {
-      console.error("Error taking picture: ", error);
+      console.error('Error taking picture:', error);
     }
   };
 
