@@ -31,6 +31,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "54448ee5-0431-4c25-aaee-40c1151e31ee"
+      }
+    },
+    "owner": "cryptid.megalodon"
   }
 }
