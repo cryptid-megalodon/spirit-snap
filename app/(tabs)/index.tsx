@@ -8,7 +8,6 @@ const OPENAI_API_KEY = 'sk-proj-UJJ1Wt5Bthgfa3GALjUHyBj_QoikXNg-Hic0aEEqHx-O7JUv
 const REPLICATE_API_TOKEN = 'r8_TUj2UXpidi7ynm1g2TSIKV0dL4DPIww3c1om8';
 
 export default function Tab() {
-  const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [photos, setPhotos] = useState<string[]>([]); // Store multiple photos
   const cameraViewRef = useRef<CameraView | null>(null);
@@ -24,10 +23,6 @@ export default function Tab() {
         <Button onPress={requestPermission} title="Grant permission" />
       </View>
     );
-  }
-
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
   // Function to make API call to get caption for the image
@@ -152,7 +147,7 @@ export default function Tab() {
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing} ref={cameraViewRef}>
+      <CameraView style={styles.camera} ref={cameraViewRef}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={takePicture}>
             <Text style={styles.text}>Take Picture</Text>
