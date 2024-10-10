@@ -89,7 +89,7 @@ export default function Tab() {
       );
       const generatedImageUri = response.data.output[0];
       return generatedImageUri;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating image:', error.response?.data || error.message);
       return null;
     }
