@@ -78,6 +78,7 @@ export default function Tab() {
           headers: {
             Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',  // Adding the X-Requested-With header
             Prefer: 'wait', // This tells the server to wait until the image is generated before responding
           },
         }
@@ -119,13 +120,20 @@ export default function Tab() {
           } else {
             // TODO: Store photos when we are running from a mobile device.
           }
+          let base64Image = "data:image/jpg;base64," + picture.base64;
+          
+          // Log individual properties for more specific details
+          console.log('Photo URI:', picture.uri);
+          console.log('Photo Width:', picture.width);
+          console.log('Photo Height:', picture.height);
 
           // Step 1: Get the image caption from OpenAI
-          const caption = await getImageCaption(picture.base64);
+          const caption = await getImageCaption(base64Image);
           if (!caption) {
             console.error('Error: Failed to generate caption');
             return;
           }
+          console.log('Caption:', caption)
 
           // Step 2: Generate cartoon monster image using Replicate
           const generatedImageUri = await generateCartoonMonster(caption);
@@ -133,6 +141,7 @@ export default function Tab() {
             console.error('Error: Failed to generate cartoon monster');
             return;
           }
+          console.log('Finished generating image.')
 
           // Step 3: Save the generated image to cache
           saveGeneratedImage(generatedImageUri);
