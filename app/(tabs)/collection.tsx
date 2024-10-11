@@ -58,7 +58,7 @@ const CollectionScreen = () => {
     <View style={styles.container}>
       {photos.length > 0 ? (
         <FlatList
-          data={photos}
+          data={[...photos].reverse()}  // The newest photo should show up first.
           renderItem={renderPhoto}
           keyExtractor={(item, index) => index.toString()}
           numColumns={3} // Display 3 photos per row
