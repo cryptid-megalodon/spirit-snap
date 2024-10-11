@@ -78,6 +78,7 @@ export default function Tab() {
           headers: {
             Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',  // Adding the X-Requested-With header
             Prefer: 'wait', // This tells the server to wait until the image is generated before responding
           },
         }
@@ -172,33 +173,36 @@ export default function Tab() {
         if (picture && picture.uri && picture.base64) {
           // Save the original picture
           const savedOriginalUri = await saveOriginalPicture(picture.uri);
+          let base64Image = "data:image/jpg;base64," + picture.base64;
+          
+          // Log individual properties for more specific details
+          console.log('Photo URI:', picture.uri);
+          console.log('Photo Width:', picture.width);
+          console.log('Photo Height:', picture.height);
 
-          // todo remove this is for debugging
-          if (savedOriginalUri) {
-            setPhotos((prevPhotos) => [...prevPhotos, savedOriginalUri]);
+          // Step 1: Get the image caption from OpenAI
+          const caption = await getImageCaption(base64Image);
+          if (!caption) {
+            console.error('Error: Failed to generate caption');
+            return;
           }
+          console.log('Caption:', caption)
 
-          // // Step 1: Get the image caption from OpenAI
-          // const caption = await getImageCaption(picture.base64);
-          // if (!caption) {
-          //   console.error('Error: Failed to generate caption');
-          //   return;
-          // }
+          // Step 2: Generate cartoon monster image using Replicate
+          const generatedImageUri = await generateCartoonMonster(caption);
+          if (!generatedImageUri) {
+            console.error('Error: Failed to generate cartoon monster');
+            return;
+          }
+          console.log('Finished generating image.')
 
-          // // Step 2: Generate cartoon monster image using Replicate
-          // const generatedImageUri = await generateCartoonMonster(caption);
-          // if (!generatedImageUri) {
-          //   console.error('Error: Failed to generate cartoon monster');
-          //   return;
-          // }
+          // Step 3: Save the generated image
+          const savedGeneratedUri = await saveGeneratedImage(generatedImageUri);
 
-          // // Step 3: Save the generated image
-          // const savedGeneratedUri = await saveGeneratedImage(generatedImageUri);
-
-          // // Update local state to include the new photos
-          // if (savedOriginalUri && savedGeneratedUri) {
-          //   setPhotos((prevPhotos) => [...prevPhotos, savedOriginalUri, savedGeneratedUri]);
-          // }
+          // Update local state to include the new photos
+          if (savedOriginalUri && savedGeneratedUri) {
+            setPhotos((prevPhotos) => [...prevPhotos, savedOriginalUri, savedGeneratedUri]);
+          }
         } else {
           console.error('Error: Picture is undefined or missing URI.');
         }
