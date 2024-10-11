@@ -219,15 +219,6 @@ export default function Tab() {
           </TouchableOpacity>
         </View>
       </CameraView>
-
-      {/* Optionally display the photos immediately after taking them */}
-      {photos.length > 0 && (
-        <View style={styles.photosContainer}>
-          {photos.map((uri, index) => (
-            <Image key={index} source={{ uri }} style={styles.photo} />
-          ))}
-        </View>
-      )}
     </View>
   );
 }

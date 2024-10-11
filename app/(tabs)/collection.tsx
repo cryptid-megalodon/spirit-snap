@@ -1,38 +1,54 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Image, View, Text, StyleSheet, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system'; // Import expo-file-system
 
 const CollectionScreen = () => {
   const [photos, setPhotos] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      // Retrieve photos from localStorage on web
-      const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
-      setPhotos(storedPhotos);
-    } else {
-      // Retrieve photos from the JSON file on mobile
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+  
       const getPhotos = async () => {
-        try {
-          const photosFile = `${FileSystem.documentDirectory}photos.json`;
-          const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
-
-          if (photosFileInfo.exists) {
-            const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
-            const storedPhotos = JSON.parse(storedPhotosJSON);
+        if (Platform.OS === 'web') {
+          const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
+          if (isActive) {
             setPhotos(storedPhotos);
-          } else {
-            setPhotos([]);
           }
-        } catch (error) {
-          console.error('Error retrieving photos:', error);
-          setPhotos([]);
+        } else {
+          try {
+            const photosFile = `${FileSystem.documentDirectory}photos.json`;
+            const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
+  
+            if (photosFileInfo.exists) {
+              const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+              const storedPhotos = JSON.parse(storedPhotosJSON);
+              if (isActive) {
+                setPhotos(storedPhotos);
+              }
+            } else {
+              if (isActive) {
+                setPhotos([]);
+              }
+            }
+          } catch (error) {
+            console.error('Error retrieving photos:', error);
+            if (isActive) {
+              setPhotos([]);
+            }
+          }
         }
       };
-
+  
       getPhotos();
-    }
-  }, []);
+  
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
+  
 
   const renderPhoto = ({ item }: { item: string }) => (
     <Image source={{ uri: item }} style={styles.image} />
