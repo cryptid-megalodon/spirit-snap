@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, View, Text, StyleSheet, Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system'; // Import expo-file-system
 
 const CollectionScreen = () => {
   const [photos, setPhotos] = useState<string[]>([]);
@@ -10,8 +11,26 @@ const CollectionScreen = () => {
       const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
       setPhotos(storedPhotos);
     } else {
-      // TODO: Retrieve phots when running from mobile.
+      // Retrieve photos from the JSON file on mobile
+      const getPhotos = async () => {
+        try {
+          const photosFile = `${FileSystem.documentDirectory}photos.json`;
+          const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
 
+          if (photosFileInfo.exists) {
+            const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+            const storedPhotos = JSON.parse(storedPhotosJSON);
+            setPhotos(storedPhotos);
+          } else {
+            setPhotos([]);
+          }
+        } catch (error) {
+          console.error('Error retrieving photos:', error);
+          setPhotos([]);
+        }
+      };
+
+      getPhotos();
     }
   }, []);
 

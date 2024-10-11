@@ -1,6 +1,6 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Platform, Image } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios'; // To handle the API requests
 
@@ -90,6 +90,45 @@ export default function Tab() {
     }
   };
 
+  // Function to save the original picture
+  const saveOriginalPicture = async (pictureUri: string) => {
+    try {
+      if (Platform.OS === 'web') {
+        const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
+        storedPhotos.push(pictureUri);
+        localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
+        return pictureUri;
+      } else {
+        const filename = `${Date.now()}-original.jpg`;
+        const filepath = `${FileSystem.documentDirectory}${filename}`;
+
+        // Copy the picture to the file system
+        await FileSystem.copyAsync({
+          from: pictureUri,
+          to: filepath,
+        });
+
+        // Update the stored list of photos
+        const photosFile = `${FileSystem.documentDirectory}photos.json`;
+        let storedPhotos = [];
+        const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
+
+        if (photosFileInfo.exists) {
+          const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+          storedPhotos = JSON.parse(storedPhotosJSON);
+        }
+
+        storedPhotos.push(filepath);
+        await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
+
+        return filepath;
+      }
+    } catch (error) {
+      console.error('Error saving original picture:', error);
+      return null;
+    }
+  };
+
   // Function to save generated image to the app cache
   const saveGeneratedImage = async (imageUri: string) => {
     try {
@@ -97,10 +136,30 @@ export default function Tab() {
         const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
         storedPhotos.push(imageUri);
         localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
+        return imageUri;
       } else {
-        // TODO: Store photos when we are running from a mobile device.
+        const filename = `${Date.now()}-generated.jpg`;
+        const filepath = `${FileSystem.documentDirectory}${filename}`;
+
+        // Download the image and save it
+        const { uri } = await FileSystem.downloadAsync(imageUri, filepath);
+
+        // Update the stored list of photos
+        const photosFile = `${FileSystem.documentDirectory}photos.json`;
+        let storedPhotos = [];
+        const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
+
+        if (photosFileInfo.exists) {
+          const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+          storedPhotos = JSON.parse(storedPhotosJSON);
+        }
+
+        storedPhotos.push(uri);
+        await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
+
+        return uri;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving image to cache:', error);
       return null;
     }
@@ -111,33 +170,35 @@ export default function Tab() {
       if (cameraViewRef.current) {
         const picture = await cameraViewRef.current.takePictureAsync({ base64: true });
         if (picture && picture.uri && picture.base64) {
-          // Save photos in localStorage for web
-          if (Platform.OS === 'web') {
-            const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
-            storedPhotos.push(picture.uri);
-            localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
-          } else {
-            // TODO: Store photos when we are running from a mobile device.
+          // Save the original picture
+          const savedOriginalUri = await saveOriginalPicture(picture.uri);
+
+          // todo remove this is for debugging
+          if (savedOriginalUri) {
+            setPhotos((prevPhotos) => [...prevPhotos, savedOriginalUri]);
           }
 
-          // Step 1: Get the image caption from OpenAI
-          const caption = await getImageCaption(picture.base64);
-          if (!caption) {
-            console.error('Error: Failed to generate caption');
-            return;
-          }
+          // // Step 1: Get the image caption from OpenAI
+          // const caption = await getImageCaption(picture.base64);
+          // if (!caption) {
+          //   console.error('Error: Failed to generate caption');
+          //   return;
+          // }
 
-          // Step 2: Generate cartoon monster image using Replicate
-          const generatedImageUri = await generateCartoonMonster(caption);
-          if (!generatedImageUri) {
-            console.error('Error: Failed to generate cartoon monster');
-            return;
-          }
+          // // Step 2: Generate cartoon monster image using Replicate
+          // const generatedImageUri = await generateCartoonMonster(caption);
+          // if (!generatedImageUri) {
+          //   console.error('Error: Failed to generate cartoon monster');
+          //   return;
+          // }
 
-          // Step 3: Save the generated image to cache
-          saveGeneratedImage(generatedImageUri);
-          const newPhotos = [...photos, picture.uri, generatedImageUri];
-          setPhotos(newPhotos); // Save photos in state
+          // // Step 3: Save the generated image
+          // const savedGeneratedUri = await saveGeneratedImage(generatedImageUri);
+
+          // // Update local state to include the new photos
+          // if (savedOriginalUri && savedGeneratedUri) {
+          //   setPhotos((prevPhotos) => [...prevPhotos, savedOriginalUri, savedGeneratedUri]);
+          // }
         } else {
           console.error('Error: Picture is undefined or missing URI.');
         }
@@ -158,6 +219,15 @@ export default function Tab() {
           </TouchableOpacity>
         </View>
       </CameraView>
+
+      {/* Optionally display the photos immediately after taking them */}
+      {photos.length > 0 && (
+        <View style={styles.photosContainer}>
+          {photos.map((uri, index) => (
+            <Image key={index} source={{ uri }} style={styles.photo} />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -189,5 +259,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
+  },
+  photosContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  photo: {
+    width: 100,
+    height: 100,
+    margin: 5,
   },
 });
