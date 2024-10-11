@@ -131,19 +131,33 @@ export default function Tab() {
   };
 
   // Function to save generated image to the app cache
+  // TODO: We are using the term URI incorrectly, we need to fix that.
   const saveGeneratedImage = async (imageUri: string) => {
     try {
+      let savedUri: string;
       if (Platform.OS === 'web') {
         const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
         storedPhotos.push(imageUri);
         localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
-        return imageUri;
+        savedUri = imageUri;
       } else {
         const filename = `${Date.now()}-generated.jpg`;
         const filepath = `${FileSystem.documentDirectory}${filename}`;
 
-        // Download the image and save it
-        const { uri } = await FileSystem.downloadAsync(imageUri, filepath);
+        // Check if imageUri is a data URI and extract the base64 data
+        let base64Data = imageUri;
+        if (imageUri.startsWith('data:')) {
+          base64Data = imageUri.split('base64,')[1];
+        } else {
+          // If it's not a data URI, handle accordingly
+          throw new Error('Invalid image data format');
+        }
+
+        // Write the base64 data to a file
+        await FileSystem.writeAsStringAsync(filepath, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        savedUri = filepath;
 
         // Update the stored list of photos
         const photosFile = `${FileSystem.documentDirectory}photos.json`;
@@ -155,10 +169,10 @@ export default function Tab() {
           storedPhotos = JSON.parse(storedPhotosJSON);
         }
 
-        storedPhotos.push(uri);
+        storedPhotos.push(savedUri);
         await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
 
-        return uri;
+        return savedUri;
       }
     } catch (error: any) {
       console.error('Error saving image to cache:', error);
