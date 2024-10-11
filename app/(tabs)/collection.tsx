@@ -9,6 +9,9 @@ const CollectionScreen = () => {
       // Retrieve photos from localStorage on web
       const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
       setPhotos(storedPhotos);
+    } else {
+      // TODO: Retrieve phots when running from mobile.
+
     }
   }, []);
 

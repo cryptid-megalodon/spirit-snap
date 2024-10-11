@@ -97,6 +97,8 @@ export default function Tab() {
         const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
         storedPhotos.push(imageUri);
         localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
+      } else {
+        // TODO: Store photos when we are running from a mobile device.
       }
     } catch (error) {
       console.error('Error saving image to cache:', error);
@@ -114,6 +116,8 @@ export default function Tab() {
             const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
             storedPhotos.push(picture.uri);
             localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
+          } else {
+            // TODO: Store photos when we are running from a mobile device.
           }
 
           // Step 1: Get the image caption from OpenAI
