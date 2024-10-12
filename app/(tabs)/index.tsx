@@ -103,18 +103,7 @@ export default function Tab() {
         to: filepath,
       });
 
-      // Update the stored list of photos
-      const photosFile = `${FileSystem.documentDirectory}photos.json`;
-      let storedPhotos = [];
-      const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
-
-      if (photosFileInfo.exists) {
-        const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
-        storedPhotos = JSON.parse(storedPhotosJSON);
-      }
-
-      storedPhotos.push(filepath);
-      await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
+      await updateStoredPhotos(filepath);
 
       return filepath;
 
@@ -144,9 +133,19 @@ export default function Tab() {
       await FileSystem.writeAsStringAsync(filepath, base64Data, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      let savedUri = filepath;
 
-      // Update the stored list of photos
+      await updateStoredPhotos(filepath);
+
+      return filepath;
+
+    } catch (error: any) {
+      console.error('Error saving image to cache:', error);
+      return null;
+    }
+  };
+
+  const updateStoredPhotos = async (filepath: string) => {
+    try {
       const photosFile = `${FileSystem.documentDirectory}photos.json`;
       let storedPhotos = [];
       const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
@@ -156,10 +155,8 @@ export default function Tab() {
         storedPhotos = JSON.parse(storedPhotosJSON);
       }
 
-      storedPhotos.push(savedUri);
+      storedPhotos.push(filepath);
       await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
-
-      return savedUri;
 
     } catch (error: any) {
       console.error('Error saving image to cache:', error);
