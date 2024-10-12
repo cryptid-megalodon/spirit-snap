@@ -42,7 +42,7 @@ export default function Tab() {
                 },
                 {
                   type: 'image_url',
-                  image_url: {url: base64Image},
+                  image_url: { url: base64Image },
                 }
               ]
             },
@@ -94,36 +94,30 @@ export default function Tab() {
   // Function to save the original picture
   const saveOriginalPicture = async (pictureUri: string) => {
     try {
-      if (Platform.OS === 'web') {
-        const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
-        storedPhotos.push(pictureUri);
-        localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
-        return pictureUri;
-      } else {
-        const filename = `${Date.now()}-original.jpg`;
-        const filepath = `${FileSystem.documentDirectory}${filename}`;
+      const filename = `${Date.now()}-original.jpg`;
+      const filepath = `${FileSystem.documentDirectory}${filename}`;
 
-        // Copy the picture to the file system
-        await FileSystem.copyAsync({
-          from: pictureUri,
-          to: filepath,
-        });
+      // Copy the picture to the file system
+      await FileSystem.copyAsync({
+        from: pictureUri,
+        to: filepath,
+      });
 
-        // Update the stored list of photos
-        const photosFile = `${FileSystem.documentDirectory}photos.json`;
-        let storedPhotos = [];
-        const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
+      // Update the stored list of photos
+      const photosFile = `${FileSystem.documentDirectory}photos.json`;
+      let storedPhotos = [];
+      const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
 
-        if (photosFileInfo.exists) {
-          const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
-          storedPhotos = JSON.parse(storedPhotosJSON);
-        }
-
-        storedPhotos.push(filepath);
-        await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
-
-        return filepath;
+      if (photosFileInfo.exists) {
+        const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+        storedPhotos = JSON.parse(storedPhotosJSON);
       }
+
+      storedPhotos.push(filepath);
+      await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
+
+      return filepath;
+
     } catch (error) {
       console.error('Error saving original picture:', error);
       return null;
@@ -134,46 +128,39 @@ export default function Tab() {
   // TODO: We are using the term URI incorrectly, we need to fix that.
   const saveGeneratedImage = async (imageUri: string) => {
     try {
-      let savedUri: string;
-      if (Platform.OS === 'web') {
-        const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
-        storedPhotos.push(imageUri);
-        localStorage.setItem('storedPhotos', JSON.stringify(storedPhotos));
-        savedUri = imageUri;
+      const filename = `${Date.now()}-generated.jpg`;
+      const filepath = `${FileSystem.documentDirectory}${filename}`;
+
+      // Check if imageUri is a data URI and extract the base64 data
+      let base64Data = imageUri;
+      if (imageUri.startsWith('data:')) {
+        base64Data = imageUri.split('base64,')[1];
       } else {
-        const filename = `${Date.now()}-generated.jpg`;
-        const filepath = `${FileSystem.documentDirectory}${filename}`;
-
-        // Check if imageUri is a data URI and extract the base64 data
-        let base64Data = imageUri;
-        if (imageUri.startsWith('data:')) {
-          base64Data = imageUri.split('base64,')[1];
-        } else {
-          // If it's not a data URI, handle accordingly
-          throw new Error('Invalid image data format');
-        }
-
-        // Write the base64 data to a file
-        await FileSystem.writeAsStringAsync(filepath, base64Data, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        savedUri = filepath;
-
-        // Update the stored list of photos
-        const photosFile = `${FileSystem.documentDirectory}photos.json`;
-        let storedPhotos = [];
-        const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
-
-        if (photosFileInfo.exists) {
-          const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
-          storedPhotos = JSON.parse(storedPhotosJSON);
-        }
-
-        storedPhotos.push(savedUri);
-        await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
-
-        return savedUri;
+        // If it's not a data URI, handle accordingly
+        throw new Error('Invalid image data format');
       }
+
+      // Write the base64 data to a file
+      await FileSystem.writeAsStringAsync(filepath, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      let savedUri = filepath;
+
+      // Update the stored list of photos
+      const photosFile = `${FileSystem.documentDirectory}photos.json`;
+      let storedPhotos = [];
+      const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
+
+      if (photosFileInfo.exists) {
+        const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+        storedPhotos = JSON.parse(storedPhotosJSON);
+      }
+
+      storedPhotos.push(savedUri);
+      await FileSystem.writeAsStringAsync(photosFile, JSON.stringify(storedPhotos));
+
+      return savedUri;
+
     } catch (error: any) {
       console.error('Error saving image to cache:', error);
       return null;
@@ -188,7 +175,7 @@ export default function Tab() {
           // Save the original picture
           const savedOriginalUri = await saveOriginalPicture(picture.uri);
           let base64Image = "data:image/jpg;base64," + picture.base64;
-          
+
           // Log individual properties for more specific details
           console.log('Photo URI:', picture.uri);
           console.log('Photo Width:', picture.width);

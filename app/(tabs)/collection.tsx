@@ -9,46 +9,40 @@ const CollectionScreen = () => {
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;
-  
+
       const getPhotos = async () => {
-        if (Platform.OS === 'web') {
-          const storedPhotos = JSON.parse(localStorage.getItem('storedPhotos') || '[]');
-          if (isActive) {
-            setPhotos(storedPhotos);
-          }
-        } else {
-          try {
-            const photosFile = `${FileSystem.documentDirectory}photos.json`;
-            const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
-  
-            if (photosFileInfo.exists) {
-              const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
-              const storedPhotos = JSON.parse(storedPhotosJSON);
-              if (isActive) {
-                setPhotos(storedPhotos);
-              }
-            } else {
-              if (isActive) {
-                setPhotos([]);
-              }
+        try {
+          const photosFile = `${FileSystem.documentDirectory}photos.json`;
+          const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
+
+          if (photosFileInfo.exists) {
+            const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+            const storedPhotos = JSON.parse(storedPhotosJSON);
+            if (isActive) {
+              setPhotos(storedPhotos);
             }
-          } catch (error) {
-            console.error('Error retrieving photos:', error);
+          } else {
             if (isActive) {
               setPhotos([]);
             }
           }
+        } catch (error) {
+          console.error('Error retrieving photos:', error);
+          if (isActive) {
+            setPhotos([]);
+          }
         }
+
       };
-  
+
       getPhotos();
-  
+
       return () => {
         isActive = false;
       };
     }, [])
   );
-  
+
 
   const renderPhoto = ({ item }: { item: string }) => (
     <Image source={{ uri: item }} style={styles.image} />
