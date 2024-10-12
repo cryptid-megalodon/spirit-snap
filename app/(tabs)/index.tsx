@@ -1,4 +1,4 @@
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Platform, Image } from 'react-native';
 import * as FileSystem from 'expo-file-system';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { FlatList, Image, View, Text, StyleSheet, Platform } from 'react-native';
+import { FlatList, Image, View, Text, StyleSheet } from 'react-native';
 import * as FileSystem from 'expo-file-system'; // Import expo-file-system
 
 const CollectionScreen = () => {
