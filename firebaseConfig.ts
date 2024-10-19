@@ -2,11 +2,11 @@ import { initializeApp } from 'firebase/app';
 import { getStorage } from 'firebase/storage';
 import {
     API_KEY,
+    APP_ID,
     AUTH_DOMAIN,
+    MESSAGING_SENDER_ID,
     PROJECT_ID,
     STORAGE_BUCKET,
-    MESSAGING_SENDER_ID,
-    APP_ID,
   } from '@env';
 
 // Your web app's Firebase configuration

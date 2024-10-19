@@ -6,10 +6,11 @@ import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGesture
 import axios from 'axios'; // To handle the API requests
 import { storage } from '../../firebaseConfig';
 import { ref, uploadBytes } from 'firebase/storage';
+import {
+    OPENAI_API_KEY,
+    REPLICATE_API_TOKEN,
+  } from '@env';
 
-
-const OPENAI_API_KEY = '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';
-const REPLICATE_API_TOKEN = 'r8_TUj2UXpidi7ynm1g2TSIKV0dL4DPIww3c1om8';
 
 export default function Tab() {
   const [permission, requestPermission] = useCameraPermissions();
