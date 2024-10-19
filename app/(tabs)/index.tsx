@@ -3,6 +3,9 @@ import { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Platform, Image } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios'; // To handle the API requests
+import { storage } from '../../firebaseConfig';
+import { ref, uploadBytes } from 'firebase/storage';
+
 
 const OPENAI_API_KEY = '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';
 const REPLICATE_API_TOKEN = 'r8_TUj2UXpidi7ynm1g2TSIKV0dL4DPIww3c1om8';
@@ -92,9 +95,8 @@ export default function Tab() {
   };
 
   // Function to save the original picture
-  const saveOriginalPicture = async (pictureUri: string) => {
+  const saveOriginalPicture = async (pictureUri: string, filename: string) => {
     try {
-      const filename = `${Date.now()}-original.jpg`;
       const filepath = `${FileSystem.documentDirectory}${filename}`;
 
       // Copy the picture to the file system
@@ -115,9 +117,8 @@ export default function Tab() {
 
   // Function to save generated image to the app cache
   // TODO: We are using the term URI incorrectly, we need to fix that.
-  const saveGeneratedImage = async (imageUri: string) => {
+  const saveGeneratedImage = async (imageUri: string, filename: string) => {
     try {
-      const filename = `${Date.now()}-generated.jpg`;
       const filepath = `${FileSystem.documentDirectory}${filename}`;
 
       // Check if imageUri is a data URI and extract the base64 data
@@ -169,8 +170,14 @@ export default function Tab() {
       if (cameraViewRef.current) {
         const picture = await cameraViewRef.current.takePictureAsync({ base64: true });
         if (picture && picture.uri && picture.base64) {
+          const uniqueId = Date.now().toString(); // You can also use uuidv4()
+
+          // Filenames with the unique identifier
+          const originalFilename = `${uniqueId}-original.jpg`;
+          const generatedFilename = `${uniqueId}-generated.jpg`;
+
           // Save the original picture
-          const savedOriginalUri = await saveOriginalPicture(picture.uri);
+          const savedOriginalUri = await saveOriginalPicture(picture.uri, originalFilename);
           let base64Image = "data:image/jpg;base64," + picture.base64;
 
           // Log individual properties for more specific details
@@ -195,11 +202,15 @@ export default function Tab() {
           console.log('Finished generating image.')
 
           // Step 3: Save the generated image
-          const savedGeneratedUri = await saveGeneratedImage(generatedImageUri);
+          const savedGeneratedUri = await saveGeneratedImage(generatedImageUri, generatedFilename);
 
           // Update local state to include the new photos
           if (savedOriginalUri && savedGeneratedUri) {
             setPhotos((prevPhotos) => [...prevPhotos, savedOriginalUri, savedGeneratedUri]);
+
+            // Upload the photos to Firebase Storage
+            await uploadImageToFirebase(savedOriginalUri, originalFilename);
+            await uploadImageToFirebase(savedGeneratedUri, generatedFilename);
           }
         } else {
           console.error('Error: Picture is undefined or missing URI.');
@@ -211,6 +222,23 @@ export default function Tab() {
       console.error('Error taking picture: ', error);
     }
   };
+
+  const uploadImageToFirebase = async (imageUri: string, filename: string) => {
+    try {
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+  
+      const storageRef = ref(storage, `images/${filename}`);
+  
+      await uploadBytes(storageRef, blob);
+  
+      console.log(`Uploaded ${filename} to Firebase Storage`);
+  
+    } catch (error) {
+      console.error(`Error uploading ${filename} to Firebase Storage:`, error);
+    }
+  };
+  
 
   return (
     <View style={styles.container}>
