@@ -1,7 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Platform, Image } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent, State } from 'react-native-gesture-handler';
 import axios from 'axios'; // To handle the API requests
 
 const OPENAI_API_KEY = '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';
@@ -10,6 +11,8 @@ const REPLICATE_API_TOKEN = 'r8_TUj2UXpidi7ynm1g2TSIKV0dL4DPIww3c1om8';
 export default function Tab() {
   const [permission, requestPermission] = useCameraPermissions();
   const [photos, setPhotos] = useState<string[]>([]); // Store multiple photos
+  const [zoom, setZoom] = useState(0);
+  const [cameraRef, setCameraRef] = useState(null);
   const cameraViewRef = useRef<CameraView | null>(null);
 
   if (!permission) {
@@ -24,6 +27,13 @@ export default function Tab() {
       </View>
     );
   }
+
+  const handlePinchGesture = (event: PinchGestureHandlerGestureEvent) => {
+    const scale = event.nativeEvent.scale;
+    let newZoom = zoom + (scale - 1) / 30; // Adjust sensitivity of zoom. The larger the denominator, the less sensitive the gesture will be.
+    newZoom = Math.min(Math.max(newZoom, 0), 1); // Clamp the value between 0 and 1
+    setZoom(newZoom);
+  };
 
   // Function to make API call to get caption for the image
   const getImageCaption = async (base64Image: string) => {
@@ -213,15 +223,19 @@ export default function Tab() {
   };
 
   return (
-    <View style={styles.container}>
-      <CameraView style={styles.camera} ref={cameraViewRef}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={takePicture}>
-            <Text style={styles.text}>Take Picture</Text>
-          </TouchableOpacity>
-        </View>
-      </CameraView>
-    </View>
+    <GestureHandlerRootView style={styles.container}>
+      <PinchGestureHandler
+        onGestureEvent={handlePinchGesture}
+      >
+        <CameraView style={styles.camera} ref={cameraViewRef} zoom={zoom}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} onPress={takePicture}>
+              <Text style={styles.text}>Take Picture</Text>
+            </TouchableOpacity>
+          </View>
+        </CameraView>
+      </PinchGestureHandler>
+    </GestureHandlerRootView>
   );
 }
 
