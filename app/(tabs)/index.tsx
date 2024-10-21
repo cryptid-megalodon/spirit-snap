@@ -6,10 +6,6 @@ import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGesture
 import axios from 'axios'; // To handle the API requests
 import { storage } from '../../firebaseConfig';
 import { ref, uploadBytes } from 'firebase/storage';
-import {
-    OPENAI_API_KEY,
-    REPLICATE_API_TOKEN,
-  } from '@env';
 
 
 export default function Tab() {
@@ -65,7 +61,7 @@ export default function Tab() {
         },
         {
           headers: {
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
         }
@@ -90,7 +86,7 @@ export default function Tab() {
         },
         {
           headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+            Authorization: `Bearer ${process.env.EXPO_PUBLIC_REPLICATE_API_TOKEN}`,
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',  // Adding the X-Requested-With header
             Prefer: 'wait', // This tells the server to wait until the image is generated before responding
