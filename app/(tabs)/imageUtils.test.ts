@@ -97,7 +97,8 @@ import {
       const mockImage = {
         width: 800,
         height: 600,
-        base64Image: 'data:image/jpeg;base64,...'
+        base64Image: 'data:image/jpeg;base64,...',
+        uri: 'file://...'
       };
   
       const mockCaption = 'A friendly cartoon monster';
@@ -129,7 +130,8 @@ import {
       const mockImage = {
         width: 800,
         height: 600,
-        base64Image: 'data:image/jpeg;base64,...'
+        base64Image: 'data:image/jpeg;base64,...',
+        uri: 'file://...'
       };
   
       jest.spyOn(imageUtils, 'getImageCaption').mockResolvedValue(null);
@@ -146,7 +148,8 @@ import {
       const mockImage = {
         width: 800,
         height: 600,
-        base64Image: 'data:image/jpeg;base64,...'
+        base64Image: 'data:image/jpeg;base64,...',
+        uri: 'file://...'
       };
   
       const mockCaption = 'A friendly cartoon monster';
