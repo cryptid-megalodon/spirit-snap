@@ -13,21 +13,20 @@ This project sets up a simple Golang server, containerized using Docker, and dep
 ## Prerequisites
 
 1. **Google Cloud Account**: You need a [Google Cloud](https://cloud.google.com/) account.
-2. **GCP Project**: Create a project in the [Google Cloud Console](https://console.cloud.google.com/).
-3. **GCP CLI (gcloud)**: Install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and authenticate by running:
+2. **GCP CLI (gcloud)**: Install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and authenticate by running:
     ```bash
     gcloud auth login
     ```
-4. **Docker**: Ensure [Docker](https://www.docker.com/) is installed and running on your machine.
-5. **Go (Golang)**: Install [Go](https://golang.org/doc/install).
+3. **Docker**: Ensure [Docker](https://www.docker.com/) is installed and running on your machine.
+4. **Go (Golang)**: Install [Go](https://golang.org/doc/install).
 
 ---
 
-## Setup and Running Locally
-
 ## Instructions
 
-### 1. **Build the Docker Container**
+### Setup and Running Locally
+
+#### Step 1. **Build the Docker Container**
 
 To build the Docker image locally:
 
@@ -35,18 +34,41 @@ To build the Docker image locally:
 docker build -t gcr.io/spirit-snap/server .
 ```
 
-### 2. **Test the Docker Container Locally**
+#### Step 2. **Test the Docker Container Locally**
 
 Run the Docker container locally to ensure everything works:
 
 ```bash
-docker run -d -p 8080:8080 gcr.io/spirit-snap/server
+docker compose up
 ```
 
-You can now visit `http://localhost:8080` in your browser.
+You can now post to endpoints at `http://localhost:8080`. The best way to do
+this is using an Expo Go version of the client or a developement version of the
+app where you can set the address of the backend. NOTE: you may probably need
+to specify the ip address of the local backend, not localhost.
 
+#### Step 3. **Start the Expo Go Frontend Client**
 
-### 3. **Tag and Push the Docker Image to Google Container Registry (GCR)**
+Set the appropriate backend ip address in the client .env file. To find the
+address on linux run ifconfig. The address should start with 192.168.
+
+Set the EXPO_PUBLIC_BACKEND_SERVER_URL environment variable to correct address
+and port number.
+
+Run the following command to run the Metro server. Make sure it's running
+in Expo Go mode, not developement mode.
+
+```bash
+npx expo start
+```
+
+Scan the QR code with the Expo Go app and select the Expo Go mode.
+
+Play around with the local dev version of the client and backend!
+
+---
+
+### Testing with a GCP Serverless Backend
 
 #### Step 1: Tag the Docker image for GCR
 
@@ -62,7 +84,7 @@ docker tag V0.xx gcr.io/spirit-snap/server
 docker push gcr.io/spirit-snap/server
 ```
 
-### 4. **Deploy the Docker Image to Google Cloud Run**
+#### Step 3: **Deploy the Docker Image to Google Cloud Run**
 
 Deploy your container to **Google Cloud Run**.
 
@@ -79,11 +101,13 @@ This command:
 - Sets it to run in the `us-central1` region.
 - Allows unauthenticated requests (public access).
 
-### 5. **Test the Deployed Service**
+#### Step 5: **Test the Deployed Service**
 
-After deployment, you’ll get a URL for your service. You can test it by opening the URL in your browser.
+After deployment, you’ll get a URL for your service. You can point an Expo Go
+dev client at this by setting the EXPO_PUBLIC_BACKEND_SERVER_URL environment
+variable in the client .env.
 
-### 6. **Delete the Cloud Run Service**
+#### Step 6: **Delete the Cloud Run Service**
 
 If you want to stop or delete the service to avoid incurring costs:
 

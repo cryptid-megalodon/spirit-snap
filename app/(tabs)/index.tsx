@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import {
-  processImage
+  processImageBackendCall
 } from './imageUtils';
 
 export default function Tab() {
@@ -37,13 +37,7 @@ export default function Tab() {
         const picture = await cameraViewRef.current.takePictureAsync({ base64: true });
         if (picture && picture.uri && picture.base64) {
           const base64Image = "data:image/jpg;base64," + picture.base64;
-          const imageData = {
-            width: picture.width,
-            height: picture.height,
-            base64Image: base64Image,
-            uri: picture.uri,
-          };
-          processImage(imageData);
+          processImageBackendCall(base64Image);
         } else {
           console.error('Error: Picture is undefined or missing URI.');
         }

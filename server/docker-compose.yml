@@ -1,0 +1,9 @@
+services:
+  app:
+    image: gcr.io/spirit-snap/server
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./spirit-snap-gcp-key-secret.json:/app/service-account-key.json
