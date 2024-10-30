@@ -11,10 +11,19 @@ like building and testing a dev version of the app.
    npx expo install
    ```
 
-2. Start the app
+2. Prebuild the native code (if needed)
 
    ```bash
-    npx expo start
+   npx expo prebuild
+   ```
+
+3. Start the app
+
+   ```bash
+    # If running android.
+    npx expo run:andriod
+    # If running iOS.
+    npx expo run:ios
    ```
 
 In the output, you'll find options to open the app in a
@@ -24,7 +33,5 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can select between Expo Go and the developement build. Expo Go is a sandbox
-that does not have all features enables. Most apps will outgrow the sandbox.
-Developement mode allows you to build a full featured app outside of the Expo
-Go sandbox but is slightly more heavy weight.
+You should use the developement build. It is the build users will see in
+production where Expo Go is a sandbox that may differ from prod.
