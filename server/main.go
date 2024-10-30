@@ -40,6 +40,7 @@ type ImageData struct {
 
 // Hanldes the HTTP details for the processImage endpoint.
 func (s *Server) processImageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Print("Received request to process image.")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 		return

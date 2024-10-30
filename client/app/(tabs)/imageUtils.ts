@@ -13,7 +13,7 @@ export const processImageBackendCall = async (base64Image: string) => {
   console.log("Process Image Endpoint:", endpoint)
   try {
     const response = await axios.post(
-      url + "/ProcessImage",
+      endpoint,
       {
         'base64Image': base64Image
       },
