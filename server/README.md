@@ -75,7 +75,7 @@ Play around with the local dev version of the client and backend!
 Tag the build with relevant version or feature informatoin to identify it.
 
 ```bash
-docker tag V0.xx gcr.io/spirit-snap/server
+docker tag gcr.io/spirit-snap/server v0.xx
 ```
 
 #### Step 2: Push the image to Google Container Registry
@@ -90,7 +90,7 @@ Deploy your container to **Google Cloud Run**.
 
 ```bash
 gcloud run deploy spirit-snap-server \
-    --image gcr.io/spirit-snap/my-go-server \
+    --image gcr.io/spirit-snap/server \
     --platform managed \
     --region us-central1 \
     --allow-unauthenticated
@@ -101,13 +101,13 @@ This command:
 - Sets it to run in the `us-central1` region.
 - Allows unauthenticated requests (public access).
 
-#### Step 5: **Test the Deployed Service**
+#### Step 4: **Test the Deployed Service**
 
 After deployment, you’ll get a URL for your service. You can point an Expo Go
 dev client at this by setting the EXPO_PUBLIC_BACKEND_SERVER_URL environment
 variable in the client .env.
 
-#### Step 6: **Delete the Cloud Run Service**
+#### Step 5: **Delete the Cloud Run Service**
 
 If you want to stop or delete the service to avoid incurring costs:
 
