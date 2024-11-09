@@ -21,14 +21,14 @@ export const fetchImages = async () => {
     const storage = getStorage(app);
 
     const imagesCollection = collection(db, 'generatedImages');
-    const q = query(imagesCollection, orderBy('image_timestamp', 'asc'));
+    const q = query(imagesCollection, orderBy('imageTimestamp', 'asc'));
     const querySnapshot = await getDocs(q);
 
     const imageUrls = await Promise.all(
         querySnapshot.docs.map(async (doc) => {
-            const imageData = doc.data();
-            const filePath = imageData.generatedImageDownloadUrl;
             try {
+                const imageData = doc.data();
+                const filePath = imageData.generatedImageDownloadUrl;
                 const imageRef = ref(storage, filePath);
                 return await getDownloadURL(imageRef);
             }
