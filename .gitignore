@@ -14,6 +14,7 @@ client/web-build/
 client/.env
 server/.env
 server/spirit-snap-gcp-key-secret.json
+server/server
 
 # macOS
 .DS_Store
