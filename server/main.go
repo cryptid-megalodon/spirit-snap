@@ -70,14 +70,20 @@ func main() {
 	port := *flag.Int("port", 8080, "Port for the HTTP server")
 	flag.Parse()
 
+	// Retrieve the Firebase JSON credentials from an environment variable
+	jsonCredentials := os.Getenv("FIREBASE_CREDENTIALS_JSON")
+	if jsonCredentials == "" {
+		log.Fatal("FIREBASE_CREDENTIALS_JSON environment variable is not set")
+	}
+
 	// Initialize connections.
 	ctx := context.Background()
-	fs, err := file_storage.NewFirebaseStorageClient(ctx)
+	fs, err := file_storage.NewFirebaseStorageClient(ctx, jsonCredentials)
 	if err != nil {
 		log.Fatalf("Failed to create Firebase storage client: %v", err)
 	}
 	project_id := os.Getenv("GOOGLE_CLOUD_PROJECT_ID")
-	ds, err := datastore.NewFirestoreClient(ctx, project_id)
+	ds, err := datastore.NewFirestoreClient(ctx, project_id, jsonCredentials)
 	if err != nil {
 		log.Fatalf("Failed to create Firestore client: %v", err)
 	}

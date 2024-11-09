@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/option"
 )
 
 // FileStorage defines an interface for interacting with Firebase Storage.
@@ -103,8 +104,8 @@ func (s *FirebaseStorageClient) Close() error {
 //   - An error if any issue occurs during client creation.
 //
 // This function initializes a new storage client to interact with Firebase Storage.
-func NewFirebaseStorageClient(ctx context.Context) (*FirebaseStorageClient, error) {
-	client, err := storage.NewClient(ctx)
+func NewFirebaseStorageClient(ctx context.Context, jsonCredentials string) (*FirebaseStorageClient, error) {
+	client, err := storage.NewClient(ctx, option.WithCredentialsJSON([]byte(jsonCredentials)))
 	if err != nil {
 		return nil, err
 	}

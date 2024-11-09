@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/option"
 )
 
 // Datastore is an interface that defines methods for interacting with FirestoreClient.
@@ -31,8 +32,8 @@ type FirestoreClient struct {
 //   - An error if the client creation fails.
 //
 // This function initializes the real FirestoreClient client that connects to the actual FirestoreClient service.
-func NewFirestoreClient(ctx context.Context, projectID string) (Datastore, error) {
-	client, err := firestore.NewClient(ctx, projectID)
+func NewFirestoreClient(ctx context.Context, projectID string, jsonCredentials string) (Datastore, error) {
+	client, err := firestore.NewClient(ctx, projectID, option.WithCredentialsJSON([]byte(jsonCredentials)))
 	if err != nil {
 		return nil, err
 	}
