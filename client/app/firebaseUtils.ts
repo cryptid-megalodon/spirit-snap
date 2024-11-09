@@ -5,13 +5,13 @@ import { initializeApp } from 'firebase/app';
 
 // todo put this in env before pushing to github
 const firebaseConfig = {
-    apiKey: "AIzaSyB-0Vit-xjkIPoK-tE9H8_H2sSfKn4RQ4g",
-    authDomain: "spirit-snap.firebaseapp.com",
-    projectId: "spirit-snap",
-    storageBucket: "spirit-snap.appspot.com",
-    messagingSenderId: "128476670109",
-    appId: "1:128476670109:web:01160de124b4329692cc74",
-    measurementId: "G-2R3722WB0C"
+    apiKey: process.env.EXPO_PUBLIC_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_AUTH_DOMAIN,
+    projectId: process.env.EXPO_PUBLIC_PROJECT_ID,
+    storageBucket: process.env.EXPO_PUBLIC_STORAGE_BUCKET,
+    messagingSenderId: process.env.EXPO_PUBLIC_MESSAGING_SENDER_ID,
+    appId: process.env.EXPO_PUBLIC_APP_ID,
+    measurementId: process.env.EXPO_PUBLIC_MEASUREMENT_ID
 };
 
 export const fetchImages = async () => {
@@ -30,10 +30,10 @@ export const fetchImages = async () => {
             const filePath = imageData.generatedImageDownloadUrl;
             try {
                 const imageRef = ref(storage, filePath);
-                const url = await getDownloadURL(imageRef);
-                return url;
+                return await getDownloadURL(imageRef);
             }
             catch (error) {
+                console.log(error);
             }
         })
     );
