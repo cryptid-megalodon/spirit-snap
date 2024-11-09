@@ -13,6 +13,7 @@ client/*.orig.*
 client/web-build/
 client/.env
 server/.env
+server/.env-secret
 server/spirit-snap-gcp-key-secret.json
 server/server
 

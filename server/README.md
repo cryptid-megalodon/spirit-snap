@@ -133,4 +133,71 @@ To check logs for your service:
 gcloud logs read --platform run
 ```
 
+### Server Log Explorer Link
+To view the server logs in the browser click [here](https://console.cloud.google.com/logs/query?project=spirit-snap).
+
+---
+
+### Google Cloud Secret Manager Setup
+
+Google Cloud Secret Manager allows you to securely store and access sensitive information such as API keys, database credentials, and service account files. Here’s how to set up and manage secrets for the **Spirit Snap** project.
+
+#### 1. Adding a New Secret
+
+To store sensitive data like Firebase credentials in Google Cloud Secret Manager:
+
+```sh
+echo -n "YOUR_SECRET_VALUE" | gcloud secrets create SECRET_NAME --data-file=-
+```
+
+Replace `SECRET_NAME` and `YOUR_SECRET_VALUE` with the name of the secret and value that you are creating.
+
+#### 2. Updating a Secret with a New Version
+
+To update an existing secret, add a new version:
+
+```sh
+gcloud secrets versions add SECRET_NAME --data-file=/path/to/updated-firebase-key.json
+```
+
+Replace `SECRET_NAME` with the name of the secret you are creating. You can specify which version to use in your deployment or default to `latest`.
+
+#### 3. Setting Secret Access Permissions
+
+To allow Cloud Run to access this secret, grant the **Secret Manager Secret Accessor** role to the service account used by Cloud Run. 
+
+```sh
+gcloud secrets add-iam-policy-binding SECRET_NAME \
+    --member="serviceAccount:128476670109-compute@developer.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor"
+```
+Replace `SECRET_NAME` with the name of the secret you are creating. The member running our project is 128476670109-compute@developer.gserviceaccount.com.
+
+---
+
+### Deploying to Google Cloud Run with Environment Variables and Secrets
+
+To deploy the Docker image to Cloud Run, we’ll use environment variables from a `.env` file for non-sensitive data and specify sensitive data using the `--update-secrets` flag for secure access.
+
+#### 1. Loading Environment Variables from a `.env` File
+
+If you have non-sensitive environment variables in a `.env` file, you can load them directly into the deployment command:
+
+```sh
+gcloud run deploy spirit-snap-server \
+    --image gcr.io/spirit-snap/server \
+    --platform managed \
+    --region us-central1 \
+    --allow-unauthenticated \
+    --set-env-vars "$(grep -v '^#' .env | xargs | sed 's/ /,/g')" \
+    --update-secrets "FIREBASE_CREDENTIALS_JSON=FIREBASE_CREDENTIALS_JSON:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,REPLICATE_API_TOKEN=REPLICATE_API_TOKEN:latest"
+```
+
+This command reads the `.env` file, removes comments, converts it to the format required by `--set-env-vars`, and passes it to the deployment command.
+
+In this example:
+- **`GOOGLE_APPLICATION_CREDENTIALS_JSON=FIREBASE_CREDENTIALS_JSON:latest`** makes the latest version of `FIREBASE_CREDENTIALS_JSON` available as an environment variable named `GOOGLE_APPLICATION_CREDENTIALS_JSON` within the container.
+
+By combining `--set-env-vars` for general environment variables and `--update-secrets` for sensitive data, you maintain both security and flexibility in your deployment.
+
 ---
