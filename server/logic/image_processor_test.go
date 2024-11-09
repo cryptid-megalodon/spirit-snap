@@ -57,7 +57,7 @@ func TestProcess_Success(t *testing.T) {
                     "choices": [
                         {
                             "message": {
-                                "content": "Mock Caption"
+                                "content": "{\"name\": \"Glimmering Griffon\", \"description\": \"A majestic griffon with shimmering golden feathers and a piercing gaze.\", \"image_generation_prompt\": \"A griffon with golden feathers soaring through a cloudy sky, sunlight reflecting off its wings.\"}"
                             }
                         }
                     ]
@@ -155,7 +155,7 @@ func TestProcess_FailOnMisunderstoodImageCaptionResponse(t *testing.T) {
 			if req.URL.String() == "https://api.openai.com/v1/chat/completions" {
 				return &http.Response{
 					StatusCode: http.StatusOK,
-					Body:       io.NopCloser(bytes.NewBufferString(`{"content": ""}`)),
+					Body:       io.NopCloser(bytes.NewBufferString(`{"content": "{\"name\": \"Glimmering Griffon\", \"description\": \"A majestic griffon with shimmering golden feathers and a piercing gaze.\", \"image_generation_prompt\": \"A griffon with golden feathers soaring through a cloudy sky, sunlight reflecting off its wings.\"}" }`)),
 					Header:     make(http.Header),
 				}, nil
 			}
@@ -196,7 +196,7 @@ func TestProcess_FailOnImageGeneration(t *testing.T) {
                     "choices": [
                         {
                             "message": {
-                                "content": "Mock Caption"
+                                "content": "{\"name\": \"Glimmering Griffon\", \"description\": \"A majestic griffon with shimmering golden feathers and a piercing gaze.\", \"image_generation_prompt\": \"A griffon with golden feathers soaring through a cloudy sky, sunlight reflecting off its wings.\"}"
                             }
                         }
                     ]
@@ -250,7 +250,7 @@ func TestProcess_FailOnMisunderstoodImageGenerationResponse(t *testing.T) {
                     "choices": [
                         {
                             "message": {
-                                "content": "Mock Caption"
+                                "content": "{\"name\": \"Glimmering Griffon\", \"description\": \"A majestic griffon with shimmering golden feathers and a piercing gaze.\", \"image_generation_prompt\": \"A griffon with golden feathers soaring through a cloudy sky, sunlight reflecting off its wings.\"}"
                             }
                         }
                     ]
@@ -314,7 +314,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
                     "choices": [
                         {
                             "message": {
-                                "content": "Mock Caption"
+                                "content": "{\"name\": \"Glimmering Griffon\", \"description\": \"A majestic griffon with shimmering golden feathers and a piercing gaze.\", \"image_generation_prompt\": \"A griffon with golden feathers soaring through a cloudy sky, sunlight reflecting off its wings.\"}"
                             }
                         }
                     ]
@@ -391,7 +391,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
                     "choices": [
                         {
                             "message": {
-                                "content": "Mock Caption"
+                                "content": "{\"name\": \"Glimmering Griffon\", \"description\": \"A majestic griffon with shimmering golden feathers and a piercing gaze.\", \"image_generation_prompt\": \"A griffon with golden feathers soaring through a cloudy sky, sunlight reflecting off its wings.\"}"
                             }
                         }
                     ]
