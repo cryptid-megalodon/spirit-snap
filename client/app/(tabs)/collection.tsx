@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Image, View, Text, StyleSheet } from 'react-native';
 import * as FileSystem from 'expo-file-system'; // Import expo-file-system
+import { fetchImages } from '../firebaseUtils';
 
 const CollectionScreen = () => {
   const [photos, setPhotos] = useState<string[]>([]);
@@ -12,20 +13,23 @@ const CollectionScreen = () => {
 
       const getPhotos = async () => {
         try {
-          const photosFile = `${FileSystem.documentDirectory}photos.json`;
-          const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
+          const imageUrls = await fetchImages();
+          console.log("imageUrls from getPhotos", imageUrls);
+          setPhotos(imageUrls);
+          // const photosFile = `${FileSystem.documentDirectory}photos.json`;
+          // const photosFileInfo = await FileSystem.getInfoAsync(photosFile);
 
-          if (photosFileInfo.exists) {
-            const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
-            const storedPhotos = JSON.parse(storedPhotosJSON);
-            if (isActive) {
-              setPhotos(storedPhotos);
-            }
-          } else {
-            if (isActive) {
-              setPhotos([]);
-            }
-          }
+          // if (photosFileInfo.exists) {
+          //   const storedPhotosJSON = await FileSystem.readAsStringAsync(photosFile);
+          //   const storedPhotos = JSON.parse(storedPhotosJSON);
+          //   if (isActive) {
+          //     setPhotos(storedPhotos);
+          //   }
+          // } else {
+          //   if (isActive) {
+          //     setPhotos([]);
+          //   }
+          // }
         } catch (error) {
           console.error('Error retrieving photos:', error);
           if (isActive) {
