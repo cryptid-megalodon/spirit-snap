@@ -75,7 +75,7 @@ Play around with the local dev version of the client and backend!
 Tag the build with relevant version or feature informatoin to identify it.
 
 ```bash
-docker tag V0.xx gcr.io/spirit-snap/server
+docker tag gcr.io/spirit-snap/server v0.xx
 ```
 
 #### Step 2: Push the image to Google Container Registry
