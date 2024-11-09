@@ -14,8 +14,9 @@ const CollectionScreen = () => {
       const getPhotos = async () => {
         try {
           const imageUrls = await fetchImages();
-          console.log("imageUrls from getPhotos", imageUrls);
-          setPhotos(imageUrls);
+          // Filter out undefined values
+          const validImageUrls = imageUrls.filter((url): url is string => url !== undefined && url !== null);
+          setPhotos(validImageUrls);
         } catch (error) {
           console.error('Error retrieving photos:', error);
           if (isActive) {
