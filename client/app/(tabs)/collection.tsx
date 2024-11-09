@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { FlatList, Image, View, Text, StyleSheet } from 'react-native';
-import * as FileSystem from 'expo-file-system'; // Import expo-file-system
-import { fetchImages } from '../firebaseUtils';
+import { FlatList, Image, View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { fetchSpirits } from '../firebaseUtils';
+import { SpiritData } from '../types';
 
 const CollectionScreen = () => {
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<SpiritData[]>([]);
+  const [selectedImage, setSelectedImage] = useState<SpiritData | null>(null);
+
+  const openBaseballCardView = (spiritData: SpiritData) => {
+    setSelectedImage(spiritData);
+  };
+
+  const closeBaseballCardView = () => {
+    setSelectedImage(null);
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -13,17 +22,16 @@ const CollectionScreen = () => {
 
       const getPhotos = async () => {
         try {
-          const imageUrls = await fetchImages();
-          // Filter out undefined values
-          const validImageUrls = imageUrls.filter((url): url is string => url !== undefined && url !== null);
-          setPhotos(validImageUrls);
+          const spirits = await fetchSpirits();
+          if (isActive) {
+            setPhotos(spirits);
+          }
         } catch (error) {
           console.error('Error retrieving photos:', error);
           if (isActive) {
             setPhotos([]);
           }
         }
-
       };
 
       getPhotos();
@@ -34,22 +42,43 @@ const CollectionScreen = () => {
     }, [])
   );
 
+  const truncateDescription = (description: string, sentenceCount: number = 2): string => {
+    const sentences = description.split('. ');
+    return sentences.slice(0, sentenceCount).join('. ') + (sentences.length > sentenceCount ? '.' : '');
+  };
 
-  const renderPhoto = ({ item }: { item: string }) => (
-    <Image source={{ uri: item }} style={styles.image} />
+  const renderPhoto = ({ item }: { item: SpiritData }) => (
+    <TouchableOpacity onPress={() => openBaseballCardView(item)}>
+      <Image source={{ uri: item.generatedImageDownloadUrl }} style={styles.image} />
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       {photos.length > 0 ? (
         <FlatList
-          data={[...photos].reverse()}  // The newest photo should show up first.
+          data={[...photos].reverse()}
           renderItem={renderPhoto}
-          keyExtractor={(item, index) => index.toString()}
-          numColumns={3} // Display 3 photos per row
+          keyExtractor={(item) => item.id}
+          numColumns={3}
         />
       ) : (
         <Text>No photos available</Text>
+      )}
+
+      {selectedImage && (
+        <Modal visible={true} transparent={true} animationType="slide">
+          <View style={styles.modalContainer}>
+            <Text style={styles.name}>{selectedImage.name}</Text>
+            <Image source={{ uri: selectedImage.generatedImageDownloadUrl }} style={styles.fullImage} />
+            <Text style={styles.description}>{truncateDescription(selectedImage.description)}</Text>
+            <Text style={styles.ability}>Ability: Hardcoded Ability</Text>
+            <Image source={{ uri: selectedImage.originalImageDownloadUrl }} style={styles.originalImage} />
+            <TouchableOpacity onPress={closeBaseballCardView} style={styles.closeButton}>
+              <Text>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       )}
     </View>
   );
@@ -66,6 +95,50 @@ const styles = StyleSheet.create({
     height: 100,
     margin: 5,
     borderRadius: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    padding: 20,
+  },
+  fullImage: {
+    width: 300,
+    height: 300,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  ability: {
+    fontSize: 16,
+    color: 'white',
+    marginBottom: 20,
+  },
+  originalImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  closeButton: {
+    padding: 10,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    marginTop: 20,
   },
 });
 

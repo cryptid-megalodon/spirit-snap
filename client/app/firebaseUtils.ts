@@ -1,9 +1,8 @@
 import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import { initializeApp } from 'firebase/app';
+import { SpiritData } from './types';
 
-
-// todo put this in env before pushing to github
 const firebaseConfig = {
     apiKey: process.env.EXPO_PUBLIC_API_KEY,
     authDomain: process.env.EXPO_PUBLIC_AUTH_DOMAIN,
@@ -14,7 +13,7 @@ const firebaseConfig = {
     measurementId: process.env.EXPO_PUBLIC_MEASUREMENT_ID
 };
 
-export const fetchImages = async () => {
+export const fetchSpirits = async (): Promise<SpiritData[]> => {
     // Initialize Firebase app
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -24,18 +23,29 @@ export const fetchImages = async () => {
     const q = query(imagesCollection, orderBy('imageTimestamp', 'asc'));
     const querySnapshot = await getDocs(q);
 
-    const imageUrls = await Promise.all(
+    const spirits = await Promise.all(
         querySnapshot.docs.map(async (doc) => {
             try {
-                const imageData = doc.data();
-                const filePath = imageData.generatedImageDownloadUrl;
-                const imageRef = ref(storage, filePath);
-                return await getDownloadURL(imageRef);
+                const spiritData = doc.data();
+                const filePath = spiritData.generatedImageDownloadUrl;
+                const originalFilePath = spiritData.originalImageDownloadUrl;
+
+                // Retrieve download URLs for both the generated and original images
+                const generatedImageUrl = await getDownloadURL(ref(storage, filePath));
+                const originalImageUrl = await getDownloadURL(ref(storage, originalFilePath));
+
+                return {
+                    id: doc.id,
+                    name: spiritData.name,
+                    description: spiritData.description,
+                    generatedImageDownloadUrl: generatedImageUrl,
+                    originalImageDownloadUrl: originalImageUrl
+                };
             }
             catch (error) {
                 console.log(error);
             }
         })
     );
-    return imageUrls;
+    return spirits.filter((spirit): spirit is SpiritData => spirit !== undefined);
 }
