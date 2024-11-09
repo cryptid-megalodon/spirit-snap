@@ -7,6 +7,7 @@ import { SpiritData } from '../types';
 const CollectionScreen = () => {
   const [photos, setPhotos] = useState<SpiritData[]>([]);
   const [selectedImage, setSelectedImage] = useState<SpiritData | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
 
   const openBaseballCardView = (spiritData: SpiritData) => {
     setSelectedImage(spiritData);
@@ -14,6 +15,10 @@ const CollectionScreen = () => {
 
   const closeBaseballCardView = () => {
     setSelectedImage(null);
+  };
+
+  const toggleImage = () => {
+    setShowOriginal((prev) => !prev);
   };
 
   useFocusEffect(
@@ -66,20 +71,36 @@ const CollectionScreen = () => {
         <Text>No photos available</Text>
       )}
 
-      {selectedImage && (
-        <Modal visible={true} transparent={true} animationType="slide">
-          <View style={styles.modalContainer}>
-            <Text style={styles.name}>{selectedImage.name}</Text>
-            <Image source={{ uri: selectedImage.generatedImageDownloadUrl }} style={styles.fullImage} />
-            <Text style={styles.description}>{truncateDescription(selectedImage.description)}</Text>
-            <Text style={styles.ability}>Ability: Hardcoded Ability</Text>
-            <Image source={{ uri: selectedImage.originalImageDownloadUrl }} style={styles.originalImage} />
-            <TouchableOpacity onPress={closeBaseballCardView} style={styles.closeButton}>
-              <Text>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
-      )}
+{selectedImage && (
+  <Modal visible={true} transparent={true} animationType="slide">
+    <View style={styles.modalContainer}>
+      <Text style={styles.name}>{selectedImage.name}</Text>
+
+      {/* Main Image - shows either original or generated based on showOriginal */}
+      <Image
+        source={{ uri: showOriginal ? selectedImage.originalImageDownloadUrl : selectedImage.generatedImageDownloadUrl }}
+        style={styles.fullImage}
+      />
+
+      <Text style={styles.description}>{truncateDescription(selectedImage.description)}</Text>
+      <Text style={styles.ability}>Ability: Hardcoded Ability</Text>
+
+      {/* Small Image in Bottom Right */}
+      <TouchableOpacity onPress={toggleImage} style={styles.smallImageContainer}>
+        <Image
+          source={{ uri: showOriginal ? selectedImage.generatedImageDownloadUrl : selectedImage.originalImageDownloadUrl }}
+          style={styles.smallImage}
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={closeBaseballCardView} style={styles.closeButton}>
+        <Text>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </Modal>
+)}
+
+
     </View>
   );
 };
@@ -126,13 +147,16 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 20,
   },
-  originalImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
+  // Wraps the small image and positions it in the bottom right
+  smallImageContainer: {
     position: 'absolute',
     bottom: 20,
     right: 20,
+  },
+  smallImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
   },
   closeButton: {
     padding: 10,
