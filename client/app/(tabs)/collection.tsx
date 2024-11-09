@@ -11,6 +11,7 @@ const CollectionScreen = () => {
 
   const openBaseballCardView = (spiritData: SpiritData) => {
     setSelectedImage(spiritData);
+    setShowOriginal(false);
   };
 
   const closeBaseballCardView = () => {
