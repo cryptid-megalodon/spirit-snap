@@ -4,7 +4,7 @@ import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import {
   processImageBackendCall
-} from './imageUtils';
+} from '../imageUtils';
 
 export default function Tab() {
   const [permission, requestPermission] = useCameraPermissions();
