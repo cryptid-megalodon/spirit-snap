@@ -86,6 +86,12 @@ while hinting at its powers or evolutionary potential.`
 
 var descriptionPrompt = strings.ReplaceAll(humanReadableDescriptionPrompt, "\n", " ")
 
+const humanReadableCreatureTypePrompt = `
+Select the creature type that best represents the creature's style and captures
+its natural elemental affinities.`
+
+var primaryTypePrompt = strings.ReplaceAll(humanReadableCreatureTypePrompt, "\n", " ")
+
 type Processor interface {
 	Process(image *string) error
 	Close()
@@ -101,6 +107,7 @@ type CreatureData struct {
 	Name                  string `json:"name"`
 	Description           string `json:"description"`
 	ImageGenerationPrompt string `json:"image_generation_prompt"`
+	PrimaryType           string `json:"primary_type"`
 }
 
 func NewImageProcessor(storage file_storage.FileStorage, ds datastore.Datastore, rt http.RoundTripper) *ImageProcessor {
@@ -139,6 +146,7 @@ func (ip *ImageProcessor) Process(base64Image *string) error {
 	generatedImageData["name"] = creatureData.Name
 	generatedImageData["description"] = creatureData.Description
 	generatedImageData["imageGenerationPrompt"] = creatureData.ImageGenerationPrompt
+	generatedImageData["primaryType"] = creatureData.PrimaryType
 
 	// Step 2: Generate cartoon monster image using Replicate
 	generatedImageURI, err := ip.createCreatureImage(&creatureData.ImageGenerationPrompt)
@@ -233,8 +241,13 @@ func (ip *ImageProcessor) createCreatureData(base64Image *string) (*CreatureData
 							"type":        "string",
 							"description": spritePrompt,
 						},
+						"primary_type": map[string]interface{}{
+							"type":        "string",
+							"description": primaryTypePrompt,
+							"enum":        []string{"Fire", "Water", "Rock", "Grass", "Psychic", "Electric", "Fighting"},
+						},
 					},
-					"required":             []string{"name", "description", "image_generation_prompt"},
+					"required":             []string{"name", "description", "image_generation_prompt", "primary_type"},
 					"additionalProperties": false,
 				},
 			},

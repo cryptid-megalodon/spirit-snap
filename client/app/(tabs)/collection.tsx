@@ -84,7 +84,7 @@ const CollectionScreen = () => {
       />
 
       <Text style={styles.description}>{truncateDescription(selectedImage.description)}</Text>
-      <Text style={styles.ability}>Ability: Hardcoded Ability</Text>
+      <Text style={styles.type}>Type: {selectedImage.type}</Text>
 
       {/* Small Image in Bottom Right */}
       <TouchableOpacity onPress={toggleImage} style={styles.smallImageContainer}>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
-  ability: {
+  type: {
     fontSize: 16,
     color: 'white',
     marginBottom: 20,

@@ -26,9 +26,9 @@ export const fetchSpirits = async (): Promise<SpiritData[]> => {
     const spirits = await Promise.all(
         querySnapshot.docs.map(async (doc) => {
             try {
-                const spiritData = doc.data();
-                const filePath = spiritData.generatedImageDownloadUrl;
-                const originalFilePath = spiritData.originalImageDownloadUrl;
+                const data = doc.data();
+                const filePath = data.generatedImageDownloadUrl;
+                const originalFilePath = data.originalImageDownloadUrl;
 
                 // Retrieve download URLs for both the generated and original images
                 const generatedImageUrl = await getDownloadURL(ref(storage, filePath));
@@ -36,8 +36,9 @@ export const fetchSpirits = async (): Promise<SpiritData[]> => {
 
                 return {
                     id: doc.id,
-                    name: spiritData.name,
-                    description: spiritData.description,
+                    name: data.name,
+                    description: data.description,
+                    type: data.primaryType,
                     generatedImageDownloadUrl: generatedImageUrl,
                     originalImageDownloadUrl: originalImageUrl
                 };
