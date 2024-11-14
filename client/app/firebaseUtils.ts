@@ -38,7 +38,8 @@ export const fetchSpirits = async (): Promise<SpiritData[]> => {
                     id: doc.id,
                     name: data.name,
                     description: data.description,
-                    type: data.primaryType,
+                    primaryType: data.primaryType,
+                    secondaryType: data.secondaryType,
                     generatedImageDownloadUrl: generatedImageUrl,
                     originalImageDownloadUrl: originalImageUrl
                 };

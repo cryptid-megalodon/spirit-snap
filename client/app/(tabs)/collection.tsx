@@ -53,6 +53,10 @@ const CollectionScreen = () => {
     return sentences.slice(0, sentenceCount).join('. ') + (sentences.length > sentenceCount ? '.' : '');
   };
 
+  const displayType = (primaryType: string, secondaryType: string): string => {
+    return secondaryType == "None" ? primaryType : primaryType + "/" + secondaryType
+  }
+
   const renderPhoto = ({ item }: { item: SpiritData }) => (
     <TouchableOpacity onPress={() => openBaseballCardView(item)}>
       <Image source={{ uri: item.generatedImageDownloadUrl }} style={styles.image} />
@@ -84,7 +88,7 @@ const CollectionScreen = () => {
       />
 
       <Text style={styles.description}>{truncateDescription(selectedImage.description)}</Text>
-      <Text style={styles.type}>Type: {selectedImage.type}</Text>
+      <Text style={styles.type}>Type: {displayType(selectedImage.primaryType, selectedImage.secondaryType)}</Text>
 
       {/* Small Image in Bottom Right */}
       <TouchableOpacity onPress={toggleImage} style={styles.smallImageContainer}>

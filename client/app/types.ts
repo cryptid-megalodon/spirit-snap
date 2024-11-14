@@ -2,7 +2,8 @@ export interface SpiritData {
     id: string;
     name: string;
     description: string;
-    type: string;
+    primaryType: string;
+    secondaryType: string;
     generatedImageDownloadUrl: string;
     originalImageDownloadUrl: string;
   }

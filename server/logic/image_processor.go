@@ -86,11 +86,18 @@ while hinting at its powers or evolutionary potential.`
 
 var descriptionPrompt = strings.ReplaceAll(humanReadableDescriptionPrompt, "\n", " ")
 
-const humanReadableCreatureTypePrompt = `
+const humanReadablePrimaryTypePrompt = `
 Select the creature type that best represents the creature's style and captures
 its natural elemental affinities.`
 
-var primaryTypePrompt = strings.ReplaceAll(humanReadableCreatureTypePrompt, "\n", " ")
+var primaryTypePrompt = strings.ReplaceAll(humanReadablePrimaryTypePrompt, "\n", " ")
+
+const humanReadableSecondaryTypePrompt = `
+If the creature has a compelling secondary type that adds more character, pick
+a secondary type. Otherwise pick "None". A single type can be more compelling
+if it's a strong fit for the creature's lore or background.`
+
+var secondaryTypePrompt = strings.ReplaceAll(humanReadableSecondaryTypePrompt, "\n", " ")
 
 type Processor interface {
 	Process(image *string) error
@@ -108,6 +115,7 @@ type CreatureData struct {
 	Description           string `json:"description"`
 	ImageGenerationPrompt string `json:"image_generation_prompt"`
 	PrimaryType           string `json:"primary_type"`
+	SecondaryType         string `json:"secondary_type"`
 }
 
 func NewImageProcessor(storage file_storage.FileStorage, ds datastore.Datastore, rt http.RoundTripper) *ImageProcessor {
@@ -147,6 +155,7 @@ func (ip *ImageProcessor) Process(base64Image *string) error {
 	generatedImageData["description"] = creatureData.Description
 	generatedImageData["imageGenerationPrompt"] = creatureData.ImageGenerationPrompt
 	generatedImageData["primaryType"] = creatureData.PrimaryType
+	generatedImageData["secondaryType"] = creatureData.SecondaryType
 
 	// Step 2: Generate cartoon monster image using Replicate
 	generatedImageURI, err := ip.createCreatureImage(&creatureData.ImageGenerationPrompt)
@@ -246,8 +255,13 @@ func (ip *ImageProcessor) createCreatureData(base64Image *string) (*CreatureData
 							"description": primaryTypePrompt,
 							"enum":        []string{"Fire", "Water", "Rock", "Grass", "Psychic", "Electric", "Fighting"},
 						},
+						"secondary_type": map[string]interface{}{
+							"type":        "string",
+							"description": secondaryTypePrompt,
+							"enum":        []string{"None", "Fire", "Water", "Rock", "Grass", "Psychic", "Electric", "Fighting"},
+						},
 					},
-					"required":             []string{"name", "description", "image_generation_prompt", "primary_type"},
+					"required":             []string{"name", "description", "image_generation_prompt", "primary_type", "secondary_type"},
 					"additionalProperties": false,
 				},
 			},
