@@ -1,7 +1,7 @@
 import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import { initializeApp } from 'firebase/app';
-import { SpiritData } from './types';
+import { SpiritData } from '../utils/types';
 
 const firebaseConfig = {
     apiKey: process.env.EXPO_PUBLIC_API_KEY,

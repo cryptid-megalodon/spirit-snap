@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Image, View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
-import { fetchSpirits } from '../firebaseUtils';
-import { SpiritData } from '../types';
+import { fetchSpirits } from '../../utils/firebaseUtils';
+import { SpiritData } from '../../utils/types';
 
 const CollectionScreen = () => {
   const [photos, setPhotos] = useState<SpiritData[]>([]);
