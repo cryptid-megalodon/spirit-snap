@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"spirit-snap/server/utils/datastore"
@@ -73,6 +74,11 @@ Create a prompt with these elements to capture the creature’s defining feature
 
 var spritePrompt = strings.ReplaceAll(humanReadableSpritePrompt, "\n", " ")
 
+const humanReadablePhotoObjectPrompt = `
+What is the object in this photo?`
+
+var photoObjectPrompt = strings.ReplaceAll(humanReadablePhotoObjectPrompt, "\n", " ")
+
 const humanReadableDescriptionPrompt = `
 Create a new entry for this creature in the monster encyclopedia, the intent should
 be to give readers a meaningful glimpse into the creature’s life cycle,
@@ -99,6 +105,61 @@ if it's a strong fit for the creature's lore or background.`
 
 var secondaryTypePrompt = strings.ReplaceAll(humanReadableSecondaryTypePrompt, "\n", " ")
 
+const humanReadableHeightPrompt = `
+Calculate the creature's height based on its physical description and lore. Height should be the number of centimeters.`
+
+var heightPrompt = strings.ReplaceAll(humanReadableHeightPrompt, "\n", " ")
+
+const humanReadableWeightPrompt = `
+Calculate the creature's weight based on its physical description and lore. Weight should be the number of kilograms.`
+
+var weightPrompt = strings.ReplaceAll(humanReadableWeightPrompt, "\n", " ")
+
+const humanReadableStrengthPrompt = `
+Calculate the creature's Strength based on its physical description, lore, and capabilities. Strength determines physical attack power and how much damage it can deal in physical moves.`
+
+var strengthPrompt = strings.ReplaceAll(humanReadableStrengthPrompt, "\n", " ")
+
+const humanReadableToughnessPrompt = `
+Calculate the creature's Toughness based on its physical resilience, build, and lore. Toughness reduces the damage taken from physical attacks.`
+
+var toughnessPrompt = strings.ReplaceAll(humanReadableToughnessPrompt, "\n", " ")
+
+const humanReadableAgilityPrompt = `
+Calculate the creature's Agility based on its speed, grace, and lore. Agility determines turn order in battles and increases the chance to dodge incoming attacks.`
+
+var agilityPrompt = strings.ReplaceAll(humanReadableAgilityPrompt, "\n", " ")
+
+const humanReadableArcanaPrompt = `
+Calculate the creature's Arcana based on its mental or supernatural abilities, description, and lore. Arcana governs special attack power for mental or energy-based moves.`
+
+var arcanaPrompt = strings.ReplaceAll(humanReadableArcanaPrompt, "\n", " ")
+
+const humanReadableAuraPrompt = `
+Calculate the creature's Aura based on its magical or supernatural resistance, description, and lore. Aura represents special defense, reducing the impact of mental or energy-based attacks.`
+
+var auraPrompt = strings.ReplaceAll(humanReadableAuraPrompt, "\n", " ")
+
+const humanReadableCharismaPrompt = `
+Calculate the creature's Charisma based on its charm, persuasive nature, and lore. Charisma influences interactions, charm-based moves, and the ability to gain favor or allies.`
+
+var charismaPrompt = strings.ReplaceAll(humanReadableCharismaPrompt, "\n", " ")
+
+const humanReadableIntimidationPrompt = `
+Calculate the creature's Intimidation based on its fearsome traits, imposing presence, and lore. Intimidation impacts an opponent's morale, increasing the likelihood of errors or lowering their stats temporarily.`
+
+var intimidationPrompt = strings.ReplaceAll(humanReadableIntimidationPrompt, "\n", " ")
+
+const humanReadableEndurancePrompt = `
+Calculate the creature's Endurance based on its size, stamina, and lore. Endurance governs the monster's health and how many hits it can take before being defeated.`
+
+var endurancePrompt = strings.ReplaceAll(humanReadableEndurancePrompt, "\n", " ")
+
+const humanReadableLuckPrompt = `
+Calculate the creature's Luck based on its lore and any traits that suggest unpredictability or fortune. Luck affects critical hits, dodges, and random outcomes during battles or events.`
+
+var luckPrompt = strings.ReplaceAll(humanReadableLuckPrompt, "\n", " ")
+
 type Processor interface {
 	Process(image *string) error
 	Close()
@@ -114,8 +175,20 @@ type CreatureData struct {
 	Name                  string `json:"name"`
 	Description           string `json:"description"`
 	ImageGenerationPrompt string `json:"image_generation_prompt"`
+	PhotoObject           string `json:"photo_object"`
 	PrimaryType           string `json:"primary_type"`
 	SecondaryType         string `json:"secondary_type"`
+	Height                int    `json:"height"`
+	Weight                int    `json:"weight"`
+	Strength              int    `json:"strength"`     // Governs physical attack power
+	Toughness             int    `json:"toughness"`    // Represents physical defense
+	Agility               int    `json:"agility"`      // Determines speed and evasion
+	Arcana                int    `json:"arcana"`       // Governs special attack power
+	Aura                  int    `json:"aura"`         // Represents special defense
+	Charisma              int    `json:"charisma"`     // Determines charm and persuasiveness
+	Intimidation          int    `json:"intimidation"` // Represents fearsome or imposing traits
+	Endurance             int    `json:"endurance"`    // Governs health and stamina
+	Luck                  int    `json:"luck"`         // Adds an unpredictable element
 }
 
 func NewImageProcessor(storage file_storage.FileStorage, ds datastore.Datastore, rt http.RoundTripper) *ImageProcessor {
@@ -154,8 +227,20 @@ func (ip *ImageProcessor) Process(base64Image *string) error {
 	generatedImageData["name"] = creatureData.Name
 	generatedImageData["description"] = creatureData.Description
 	generatedImageData["imageGenerationPrompt"] = creatureData.ImageGenerationPrompt
+	generatedImageData["photoObject"] = creatureData.PhotoObject
 	generatedImageData["primaryType"] = creatureData.PrimaryType
 	generatedImageData["secondaryType"] = creatureData.SecondaryType
+	generatedImageData["height"] = creatureData.Height
+	generatedImageData["weight"] = creatureData.Weight
+	generatedImageData["strength"] = creatureData.Strength
+	generatedImageData["toughness"] = creatureData.Toughness
+	generatedImageData["agility"] = creatureData.Agility
+	generatedImageData["arcana"] = creatureData.Arcana
+	generatedImageData["aura"] = creatureData.Aura
+	generatedImageData["charisma"] = creatureData.Charisma
+	generatedImageData["intimidation"] = creatureData.Intimidation
+	generatedImageData["endurance"] = creatureData.Endurance
+	generatedImageData["luck"] = creatureData.Luck
 
 	// Step 2: Generate cartoon monster image using Replicate
 	generatedImageURI, err := ip.createCreatureImage(&creatureData.ImageGenerationPrompt)
@@ -250,6 +335,10 @@ func (ip *ImageProcessor) createCreatureData(base64Image *string) (*CreatureData
 							"type":        "string",
 							"description": spritePrompt,
 						},
+						"photo_object": map[string]interface{}{
+							"type":        "string",
+							"description": photoObjectPrompt,
+						},
 						"primary_type": map[string]interface{}{
 							"type":        "string",
 							"description": primaryTypePrompt,
@@ -260,8 +349,56 @@ func (ip *ImageProcessor) createCreatureData(base64Image *string) (*CreatureData
 							"description": secondaryTypePrompt,
 							"enum":        []string{"None", "Fire", "Water", "Rock", "Grass", "Psychic", "Electric", "Fighting"},
 						},
+						"height": map[string]interface{}{
+							"type":        "integer",
+							"description": heightPrompt,
+						},
+						"weight": map[string]interface{}{
+							"type":        "integer",
+							"description": weightPrompt,
+						},
+						"strength": map[string]interface{}{
+							"type":        "integer",
+							"description": strengthPrompt,
+						},
+						"toughness": map[string]interface{}{
+							"type":        "integer",
+							"description": toughnessPrompt,
+						},
+						"agility": map[string]interface{}{
+							"type":        "integer",
+							"description": agilityPrompt,
+						},
+						"arcana": map[string]interface{}{
+							"type":        "integer",
+							"description": arcanaPrompt,
+						},
+						"aura": map[string]interface{}{
+							"type":        "integer",
+							"description": auraPrompt,
+						},
+						"charisma": map[string]interface{}{
+							"type":        "integer",
+							"description": charismaPrompt,
+						},
+						"intimidation": map[string]interface{}{
+							"type":        "integer",
+							"description": intimidationPrompt,
+						},
+						"endurance": map[string]interface{}{
+							"type":        "integer",
+							"description": endurancePrompt,
+						},
+						"luck": map[string]interface{}{
+							"type":        "integer",
+							"description": luckPrompt,
+						},
 					},
-					"required":             []string{"name", "description", "image_generation_prompt", "primary_type", "secondary_type"},
+					"required": []string{
+						"name", "description", "image_generation_prompt", "photo_object", "primary_type",
+						"secondary_type", "height", "weight", "strength", "toughness", "agility", "arcana",
+						"aura", "charisma", "intimidation", "endurance", "luck",
+					},
 					"additionalProperties": false,
 				},
 			},
@@ -414,6 +551,7 @@ func getContentFromOpenAiResponse(result map[string]interface{}) (*CreatureData,
 	if !ok {
 		return nil, fmt.Errorf("missing or invalid 'content' in message")
 	}
+	log.Print("OpenAI Response:", content)
 
 	// Create a map to store the parsed JSON
 	var creatureData CreatureData
