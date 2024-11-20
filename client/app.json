@@ -7,6 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -29,6 +30,15 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "minSdkVersion": 24
+          }
+        }
+      ],
       "expo-router",
       "expo-font"
     ],
