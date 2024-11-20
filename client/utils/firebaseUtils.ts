@@ -1,7 +1,7 @@
 import { collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { SpiritData } from '../utils/types';
-import { db, storage } from './firebase';
+import { db, storage } from '../firebase';
 
 export const fetchSpirits = async (): Promise<SpiritData[]> => {
     const imagesCollection = collection(db, 'generatedImages');
