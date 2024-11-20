@@ -1,24 +1,9 @@
-import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import { initializeApp } from 'firebase/app';
+import { collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
+import { ref, getDownloadURL } from 'firebase/storage';
 import { SpiritData } from '../utils/types';
-
-const firebaseConfig = {
-    apiKey: process.env.EXPO_PUBLIC_API_KEY,
-    authDomain: process.env.EXPO_PUBLIC_AUTH_DOMAIN,
-    projectId: process.env.EXPO_PUBLIC_PROJECT_ID,
-    storageBucket: process.env.EXPO_PUBLIC_STORAGE_BUCKET,
-    messagingSenderId: process.env.EXPO_PUBLIC_MESSAGING_SENDER_ID,
-    appId: process.env.EXPO_PUBLIC_APP_ID,
-    measurementId: process.env.EXPO_PUBLIC_MEASUREMENT_ID
-};
+import { db, storage } from './firebase';
 
 export const fetchSpirits = async (): Promise<SpiritData[]> => {
-    // Initialize Firebase app
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
     const imagesCollection = collection(db, 'generatedImages');
     const q = query(imagesCollection, orderBy('imageTimestamp', 'asc'));
     const querySnapshot = await getDocs(q);
