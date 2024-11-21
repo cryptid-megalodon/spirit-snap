@@ -1,9 +1,27 @@
-import { Stack } from 'expo-router/stack';
+import React from 'react';
+import { Stack } from 'expo-router';
+import { AuthProvider } from '../contexts/AuthContext';
+import UserIcon from '../components/UserIcon';
+import { View, StyleSheet } from 'react-native';
 
-export default function Layout() {
+const RootLayout: React.FC = () => {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <AuthProvider>
+      <View style={styles.container}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+        <UserIcon />
+      </View>
+    </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+});
+
+export default RootLayout;
