@@ -68,12 +68,18 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     borderRadius: 5,
+    width: '90%', // Explicit width to prevent shrinking
+    fontSize: 16, // Optional: Ensure consistent text size
   },
   button: {
     padding: 10,
     borderRadius: 5,
-    width: '80%',
+    width: '90%',
   },
 });
+
+export const screenOptions = {
+  headerShown: false, // Completely hides the header
+};
 
 export default LoginScreen;

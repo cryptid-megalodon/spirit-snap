@@ -3,7 +3,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebase';
 import { loginAnonymously } from '../utils/AuthUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useNavigation } from 'expo-router';
 
 const neverOpenedKey = 'neverOpened';
 
@@ -24,7 +24,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const navigation = useNavigation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await AsyncStorage.setItem(neverOpenedKey, 'false');
       } else {
         // No user session exists, redirect to login/signup page
-        router.push('/login'); // Redirect to login/signup page
+        navigation.navigate('login');
       }
       setLoading(false);
     });
