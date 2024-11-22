@@ -15,15 +15,15 @@ import (
 	"net/http"
 	"os"
 	"spirit-snap/server/logic"
-	"spirit-snap/server/utils/datastore"
-	"spirit-snap/server/utils/file_storage"
+	"spirit-snap/server/wrappers/datastore"
+	"spirit-snap/server/wrappers/file_storage"
 )
 
 type Server struct {
 	ImageProcessor logic.Processor
 }
 
-func NewServer(storage file_storage.FileStorage, ds *datastore.Client, rt http.RoundTripper) *Server {
+func NewServer(storage *file_storage.Client, ds *datastore.Client, rt http.RoundTripper) *Server {
 	return &Server{
 		ImageProcessor: logic.NewImageProcessor(storage, ds, rt),
 	}
@@ -78,7 +78,7 @@ func main() {
 
 	// Initialize connections.
 	ctx := context.Background()
-	fs, err := file_storage.NewFirebaseStorageClient(ctx, jsonCredentials)
+	fs, err := file_storage.NewClient(ctx, jsonCredentials)
 	if err != nil {
 		log.Fatalf("Failed to create Firebase storage client: %v", err)
 	}

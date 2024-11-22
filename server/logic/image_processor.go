@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"spirit-snap/server/utils/file_storage"
 	"strings"
 	"time"
 )
@@ -185,9 +184,15 @@ type CreatureData struct {
 }
 
 type ImageProcessor struct {
-	StorageClient   file_storage.FileStorage
+	StorageClient   StorageInterface
 	DatastoreClient DatastoreInterface
 	HttpClient      *http.Client
+}
+
+// StorageInterface defines an interface for interacting with Storeage Wrapper.
+type StorageInterface interface {
+	Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error)
+	Close() error
 }
 
 // DatastoreInterface is an interface that defines methods for interacting with the Datastore backend.
@@ -197,7 +202,7 @@ type DatastoreInterface interface {
 	Close() error
 }
 
-func NewImageProcessor(storage file_storage.FileStorage, ds DatastoreInterface, rt http.RoundTripper) *ImageProcessor {
+func NewImageProcessor(storage StorageInterface, ds DatastoreInterface, rt http.RoundTripper) *ImageProcessor {
 	// To idiomatically mock HTTP clients, you mock the connectivity component i.e. the RoundTripper which makes the network calls.
 	httpClient := &http.Client{
 		Transport: rt,

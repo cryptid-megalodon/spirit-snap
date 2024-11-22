@@ -10,8 +10,6 @@ import (
 	"os"
 	"testing"
 
-	"spirit-snap/server/utils/file_storage"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +22,6 @@ func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 	return m.RoundTripFunc(req)
 }
 
-// MockFirestoreClient is a mock implementation of FirestoreClient that allows testing of AddDocument.
 type MockFirestoreClient struct {
 	AddDocumentFunc func(ctx context.Context, collectionName string, data interface{}) error
 	CloseFunc       func() error
@@ -44,6 +41,25 @@ func (m *MockFirestoreClient) Close() error {
 	return nil
 }
 
+type MockStorageClient struct {
+	WriteFunc func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error)
+	CloseFunc func() error
+}
+
+func (m *MockStorageClient) Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
+	if m.WriteFunc != nil {
+		return m.WriteFunc(ctx, bucketName, objectName, data, contentType)
+	}
+	return "mock-download-url", nil
+}
+
+func (m *MockStorageClient) Close() error {
+	if m.CloseFunc != nil {
+		return m.CloseFunc()
+	}
+	return nil
+}
+
 func TestProcess_Success(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
@@ -56,7 +72,7 @@ func TestProcess_Success(t *testing.T) {
 	defer os.Unsetenv("REPLICATE_API_TOKEN")
 
 	// Mock StorageClient
-	mockStorage := &file_storage.MockStorageClient{
+	mockStorage := &MockStorageClient{
 		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
 			return "http://mock-download-url.com/" + objectName, nil
 		},
@@ -146,7 +162,7 @@ func TestProcess_FailOnCaptionGeneration(t *testing.T) {
 	}
 
 	// Mock StorageClient and FirestoreClient
-	mockStorage := &file_storage.MockStorageClient{}
+	mockStorage := &MockStorageClient{}
 	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
@@ -186,7 +202,7 @@ func TestProcess_FailOnMisunderstoodImageCaptionResponse(t *testing.T) {
 	}
 
 	// Mock StorageClient and FirestoreClient
-	mockStorage := &file_storage.MockStorageClient{}
+	mockStorage := &MockStorageClient{}
 	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
@@ -241,7 +257,7 @@ func TestProcess_FailOnImageGeneration(t *testing.T) {
 	}
 
 	// Mock StorageClient and FirestoreClient
-	mockStorage := &file_storage.MockStorageClient{}
+	mockStorage := &MockStorageClient{}
 	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
@@ -296,7 +312,7 @@ func TestProcess_FailOnMisunderstoodImageGenerationResponse(t *testing.T) {
 	}
 
 	// Mock StorageClient and FirestoreClient
-	mockStorage := &file_storage.MockStorageClient{}
+	mockStorage := &MockStorageClient{}
 	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
@@ -322,7 +338,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 	defer os.Unsetenv("REPLICATE_API_TOKEN")
 
 	// Mock StorageClient to fail on Write
-	mockStorage := &file_storage.MockStorageClient{
+	mockStorage := &MockStorageClient{
 		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
 			return "", errors.New("storage write failed")
 		},
@@ -396,7 +412,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 	defer os.Unsetenv("REPLICATE_API_TOKEN")
 
 	// Mock StorageClient with successful writes
-	mockStorage := &file_storage.MockStorageClient{
+	mockStorage := &MockStorageClient{
 		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
 			return "http://mock-download-url.com/" + objectName, nil
 		},
