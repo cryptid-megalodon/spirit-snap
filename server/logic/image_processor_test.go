@@ -29,6 +29,7 @@ func TestProcess_Success(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
 	base64Image := "dGVzdF9iYXNlNjRfaW1hZ2VfZGF0YQ=="
+	userId := "test_user_id"
 	// Set the environment variables
 	os.Setenv("OPENAI_API_KEY", "your_value")
 	defer os.Unsetenv("OPENAI_API_KEY")
@@ -94,7 +95,7 @@ func TestProcess_Success(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image)
+	err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.NoError(t, err)
@@ -104,6 +105,7 @@ func TestProcess_FailOnCaptionGeneration(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
 	base64Image := "dGVzdF9iYXNlNjRfaW1hZ2VfZGF0YQ=="
+	userId := "test_user_id"
 	// Set the environment variables
 	os.Setenv("OPENAI_API_KEY", "your_value")
 	defer os.Unsetenv("OPENAI_API_KEY")
@@ -132,7 +134,7 @@ func TestProcess_FailOnCaptionGeneration(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image)
+	err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -143,6 +145,7 @@ func TestProcess_FailOnMisunderstoodImageCaptionResponse(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
 	base64Image := "dGVzdF9iYXNlNjRfaW1hZ2VfZGF0YQ=="
+	userId := "test_user_id"
 	// Set the environment variables
 	os.Setenv("OPENAI_API_KEY", "your_value")
 	defer os.Unsetenv("OPENAI_API_KEY")
@@ -171,7 +174,7 @@ func TestProcess_FailOnMisunderstoodImageCaptionResponse(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image)
+	err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -182,6 +185,7 @@ func TestProcess_FailOnImageGeneration(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
 	base64Image := "dGVzdF9iYXNlNjRfaW1hZ2VfZGF0YQ=="
+	userId := "test_user_id"
 	// Set the environment variables
 	os.Setenv("OPENAI_API_KEY", "your_value")
 	defer os.Unsetenv("OPENAI_API_KEY")
@@ -225,7 +229,7 @@ func TestProcess_FailOnImageGeneration(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image)
+	err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -236,6 +240,7 @@ func TestProcess_FailOnMisunderstoodImageGenerationResponse(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
 	base64Image := "dGVzdF9iYXNlNjRfaW1hZ2VfZGF0YQ=="
+	userId := "test_user_id"
 	// Set the environment variables
 	os.Setenv("OPENAI_API_KEY", "your_value")
 	defer os.Unsetenv("OPENAI_API_KEY")
@@ -279,7 +284,7 @@ func TestProcess_FailOnMisunderstoodImageGenerationResponse(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image)
+	err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -290,6 +295,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
 	base64Image := "dGVzdF9iYXNlNjRfaW1hZ2VfZGF0YQ=="
+	userId := "test_user_id"
 	// Set the environment variables
 	os.Setenv("OPENAI_API_KEY", "your_value")
 	defer os.Unsetenv("OPENAI_API_KEY")
@@ -352,7 +358,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image)
+	err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -363,6 +369,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 	// Setup
 	// Base64encoded string: "test_base64_image_data"
 	base64Image := "dGVzdF9iYXNlNjRfaW1hZ2VfZGF0YQ=="
+	userId := "test_user_id"
 	// Set the environment variables
 	os.Setenv("OPENAI_API_KEY", "your_value")
 	defer os.Unsetenv("OPENAI_API_KEY")
@@ -429,7 +436,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image)
+	err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)

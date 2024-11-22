@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // Main endpoint into processing user images.
 // Function to make API call to process the camera image using the backend server.
-export const processImageBackendCall = async (base64Image: string) => {
+export const processImageBackendCall = async (base64Image: string, userId: string) => {
   const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
   if (url == undefined) {
     throw Error("API URL is not set.")
@@ -15,7 +15,8 @@ export const processImageBackendCall = async (base64Image: string) => {
     const response = await axios.post(
       endpoint,
       {
-        'base64Image': base64Image
+        'base64Image': base64Image,
+        'userId': userId
       },
       {
         headers: {

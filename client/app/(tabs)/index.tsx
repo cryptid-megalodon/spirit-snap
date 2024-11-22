@@ -5,8 +5,10 @@ import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGesture
 import {
   processImageBackendCall
 } from '../../utils/imageUtils';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Tab() {
+  const { user } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
   const [zoom, setZoom] = useState(0);
   const cameraViewRef = useRef<CameraView | null>(null);
@@ -37,7 +39,11 @@ export default function Tab() {
         const picture = await cameraViewRef.current.takePictureAsync({ base64: true });
         if (picture && picture.uri && picture.base64) {
           const base64Image = "data:image/jpg;base64," + picture.base64;
-          processImageBackendCall(base64Image);
+          if (user && user.uid) {
+            processImageBackendCall(base64Image, user.uid);
+          } else {
+            console.error('Error: User is not authenticated.');
+          }
         } else {
           console.error('Error: Picture is undefined or missing URI.');
         }
@@ -48,7 +54,6 @@ export default function Tab() {
       console.error('Error taking picture: ', error);
     }
   };
-
   return (
     <GestureHandlerRootView style={styles.container}>
       <PinchGestureHandler

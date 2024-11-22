@@ -36,6 +36,7 @@ func (s *Server) Close() {
 
 type ImageData struct {
 	Base64Image string
+	UserId      string
 }
 
 // Hanldes the HTTP details for the processImage endpoint.
@@ -54,7 +55,7 @@ func (s *Server) processImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.ImageProcessor.Process(&image.Base64Image)
+	err = s.ImageProcessor.Process(&image.Base64Image, &image.UserId)
 	if err != nil {
 		log.Printf("Error during image processing: %s", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -13,11 +13,11 @@ import (
 
 // MockImageProcessor implements the Processor interface for testing
 type MockImageProcessor struct {
-	ProcessFunc func(image *string) error
+	ProcessFunc func(image *string, userId *string) error
 }
 
-func (m *MockImageProcessor) Process(image *string) error {
-	return m.ProcessFunc(image)
+func (m *MockImageProcessor) Process(image *string, userId *string) error {
+	return m.ProcessFunc(image, userId)
 }
 
 func (m *MockImageProcessor) Close() {}
@@ -64,14 +64,14 @@ func TestProcessImageHandler_InternalServerError(t *testing.T) {
 	// Setup
 	server := &Server{
 		ImageProcessor: &MockImageProcessor{
-			ProcessFunc: func(image *string) error {
+			ProcessFunc: func(image *string, userId *string) error {
 				return fmt.Errorf("mock error")
 			},
 		},
 	}
 
 	// Send a valid JSON body
-	imageData := ImageData{Base64Image: "test_base64_image"}
+	imageData := ImageData{Base64Image: "test_base64_image", UserId: "test_user_id"}
 	body, _ := json.Marshal(imageData)
 	req := httptest.NewRequest(http.MethodPost, "/ProcessImage", bytes.NewBuffer(body))
 	rr := httptest.NewRecorder()
@@ -89,14 +89,14 @@ func TestProcessImageHandler_Success(t *testing.T) {
 	// Setup
 	server := &Server{
 		ImageProcessor: &MockImageProcessor{
-			ProcessFunc: func(image *string) error {
+			ProcessFunc: func(image *string, userId *string) error {
 				return nil // Simulate successful processing
 			},
 		},
 	}
 
 	// Send a valid JSON body
-	imageData := ImageData{Base64Image: "test_base64_image"}
+	imageData := ImageData{Base64Image: "test_base64_image", UserId: "test_user_id"}
 	body, _ := json.Marshal(imageData)
 	req := httptest.NewRequest(http.MethodPost, "/ProcessImage", bytes.NewBuffer(body))
 	rr := httptest.NewRecorder()

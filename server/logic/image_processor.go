@@ -161,7 +161,7 @@ Calculate the creature's Luck based on its lore and any traits that suggest unpr
 var luckPrompt = strings.ReplaceAll(humanReadableLuckPrompt, "\n", " ")
 
 type Processor interface {
-	Process(image *string) error
+	Process(image *string, userId *string) error
 	Close()
 }
 
@@ -210,7 +210,7 @@ func (ip *ImageProcessor) Close() {
 
 // This is the implementation for the processImage endpoint. It will be called
 // at high QPS.
-func (ip *ImageProcessor) Process(base64Image *string) error {
+func (ip *ImageProcessor) Process(base64Image *string, userId *string) error {
 	generatedImageData := make(map[string]interface{})
 	// ISO 8601 Timestamp (human-readable UTC date and time)
 	timestamp := time.Now().UTC().Format(time.RFC3339)
@@ -270,19 +270,19 @@ func (ip *ImageProcessor) Process(base64Image *string) error {
 
 	// Step 3: Upload results to Firebase Storage and Firestore
 	ctx := context.Background()
-	origDownloadURL, err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", "images/"+originalFilename, []byte(decodedOrigImageData), "image/jpeg")
+	origDownloadURL, err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", "photos/"+*userId+"/"+originalFilename, []byte(decodedOrigImageData), "image/jpeg")
 	if err != nil {
 		return err
 	}
 
-	genDownloadURL, err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", "images/"+generatedFilename, generatedImage, "image/webp")
+	genDownloadURL, err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", "generatedImages/"+*userId+"/"+generatedFilename, generatedImage, "image/webp")
 	if err != nil {
 		return err
 	}
 	generatedImageData["originalImageDownloadUrl"] = origDownloadURL
 	generatedImageData["generatedImageDownloadUrl"] = genDownloadURL
 
-	err = ip.FirestoreClient.AddDocument(ctx, "generatedImages", generatedImageData)
+	err = ip.FirestoreClient.AddDocument(ctx, "users/"+*userId+"/spirits", generatedImageData)
 	if err != nil {
 		return err
 	}
