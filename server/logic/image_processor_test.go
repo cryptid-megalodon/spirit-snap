@@ -10,7 +10,6 @@ import (
 	"os"
 	"testing"
 
-	"spirit-snap/server/utils/datastore"
 	"spirit-snap/server/utils/file_storage"
 
 	"github.com/stretchr/testify/assert"
@@ -23,6 +22,26 @@ type MockRoundTripper struct {
 
 func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	return m.RoundTripFunc(req)
+}
+
+// MockFirestoreClient is a mock implementation of FirestoreClient that allows testing of AddDocument.
+type MockFirestoreClient struct {
+	AddDocumentFunc func(ctx context.Context, collectionName string, data interface{}) error
+	CloseFunc       func() error
+}
+
+func (m *MockFirestoreClient) AddDocument(ctx context.Context, collectionName string, data interface{}) error {
+	if m.AddDocumentFunc == nil {
+		return errors.New("collection function not defined")
+	}
+	return m.AddDocumentFunc(ctx, collectionName, data)
+}
+
+func (m *MockFirestoreClient) Close() error {
+	if m.CloseFunc != nil {
+		return m.CloseFunc()
+	}
+	return nil
 }
 
 func TestProcess_Success(t *testing.T) {
@@ -44,7 +63,7 @@ func TestProcess_Success(t *testing.T) {
 	}
 
 	// Mock FirestoreClient
-	mockFirestore := &datastore.MockFirestoreClient{
+	mockFirestore := &MockFirestoreClient{
 		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) error {
 			return nil
 		},
@@ -128,7 +147,7 @@ func TestProcess_FailOnCaptionGeneration(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &file_storage.MockStorageClient{}
-	mockFirestore := &datastore.MockFirestoreClient{}
+	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
@@ -168,7 +187,7 @@ func TestProcess_FailOnMisunderstoodImageCaptionResponse(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &file_storage.MockStorageClient{}
-	mockFirestore := &datastore.MockFirestoreClient{}
+	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
@@ -223,7 +242,7 @@ func TestProcess_FailOnImageGeneration(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &file_storage.MockStorageClient{}
-	mockFirestore := &datastore.MockFirestoreClient{}
+	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
@@ -278,7 +297,7 @@ func TestProcess_FailOnMisunderstoodImageGenerationResponse(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &file_storage.MockStorageClient{}
-	mockFirestore := &datastore.MockFirestoreClient{}
+	mockFirestore := &MockFirestoreClient{}
 
 	// Create ImageProcessor instance
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
@@ -310,7 +329,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 	}
 
 	// Mock FirestoreClient
-	mockFirestore := &datastore.MockFirestoreClient{}
+	mockFirestore := &MockFirestoreClient{}
 
 	// Mock HTTP Client with successful responses
 	mockRoundTripper := &MockRoundTripper{
@@ -384,7 +403,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 	}
 
 	// Mock FirestoreClient to fail on AddDocument
-	mockFirestore := &datastore.MockFirestoreClient{
+	mockFirestore := &MockFirestoreClient{
 		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) error {
 			return errors.New("firestore write failed")
 		},

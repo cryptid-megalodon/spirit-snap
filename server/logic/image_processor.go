@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"spirit-snap/server/utils/datastore"
 	"spirit-snap/server/utils/file_storage"
 	"strings"
 	"time"
@@ -165,12 +164,6 @@ type Processor interface {
 	Close()
 }
 
-type ImageProcessor struct {
-	StorageClient   file_storage.FileStorage
-	FirestoreClient datastore.Datastore
-	HttpClient      *http.Client
-}
-
 type CreatureData struct {
 	Name                  string `json:"name"`
 	Description           string `json:"description"`
@@ -191,21 +184,34 @@ type CreatureData struct {
 	Luck                  int    `json:"luck"`         // Adds an unpredictable element
 }
 
-func NewImageProcessor(storage file_storage.FileStorage, ds datastore.Datastore, rt http.RoundTripper) *ImageProcessor {
+type ImageProcessor struct {
+	StorageClient   file_storage.FileStorage
+	DatastoreClient DatastoreInterface
+	HttpClient      *http.Client
+}
+
+// DatastoreInterface is an interface that defines methods for interacting with the Datastore backend.
+// It allows for dependency injection and easier testing by allowing mocking of DatastoreClient interactions.
+type DatastoreInterface interface {
+	AddDocument(ctx context.Context, collectionName string, data interface{}) error
+	Close() error
+}
+
+func NewImageProcessor(storage file_storage.FileStorage, ds DatastoreInterface, rt http.RoundTripper) *ImageProcessor {
 	// To idiomatically mock HTTP clients, you mock the connectivity component i.e. the RoundTripper which makes the network calls.
 	httpClient := &http.Client{
 		Transport: rt,
 	}
 	return &ImageProcessor{
 		StorageClient:   storage,
-		FirestoreClient: ds,
+		DatastoreClient: ds,
 		HttpClient:      httpClient,
 	}
 }
 
 func (ip *ImageProcessor) Close() {
 	ip.StorageClient.Close()
-	ip.FirestoreClient.Close()
+	ip.DatastoreClient.Close()
 }
 
 // This is the implementation for the processImage endpoint. It will be called
@@ -282,7 +288,7 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) error {
 	generatedImageData["originalImageDownloadUrl"] = origDownloadURL
 	generatedImageData["generatedImageDownloadUrl"] = genDownloadURL
 
-	err = ip.FirestoreClient.AddDocument(ctx, "users/"+*userId+"/spirits", generatedImageData)
+	err = ip.DatastoreClient.AddDocument(ctx, "users/"+*userId+"/spirits", generatedImageData)
 	if err != nil {
 		return err
 	}

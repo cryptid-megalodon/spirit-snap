@@ -23,8 +23,7 @@ type Server struct {
 	ImageProcessor logic.Processor
 }
 
-func NewServer(storage file_storage.FileStorage, ds datastore.Datastore, rt http.RoundTripper) *Server {
-	// To idiomatically mock HTTP clients, you mock the connectivity component i.e. the RoundTripper which makes the network calls.
+func NewServer(storage file_storage.FileStorage, ds *datastore.Client, rt http.RoundTripper) *Server {
 	return &Server{
 		ImageProcessor: logic.NewImageProcessor(storage, ds, rt),
 	}
@@ -83,11 +82,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create Firebase storage client: %v", err)
 	}
-	project_id := os.Getenv("GOOGLE_CLOUD_PROJECT_ID")
-	ds, err := datastore.NewFirestoreClient(ctx, project_id, jsonCredentials)
+	projectId := os.Getenv("GOOGLE_CLOUD_PROJECT_ID")
+	ds, err := datastore.NewClient(ctx, projectId, jsonCredentials)
 	if err != nil {
 		log.Fatalf("Failed to create Firestore client: %v", err)
 	}
+	// Initialize the HTTP client with the default transport.
 	rt := http.DefaultTransport
 
 	s := NewServer(fs, ds, rt)
