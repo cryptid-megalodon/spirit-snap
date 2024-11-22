@@ -87,10 +87,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create Firestore client: %v", err)
 	}
-	// Initialize the HTTP client with the default transport.
-	rt := http.DefaultTransport
-
-	s := NewServer(fs, ds, rt)
+	s := NewServer(fs, ds, http.DefaultTransport)
 	defer s.Close()
 
 	http.HandleFunc("/ProcessImage", s.processImageHandler)
