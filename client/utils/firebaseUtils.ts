@@ -3,8 +3,9 @@ import { ref, getDownloadURL } from 'firebase/storage';
 import { SpiritData } from '../utils/types';
 import { db, storage } from '../firebase';
 
-export const fetchSpirits = async (): Promise<SpiritData[]> => {
-    const imagesCollection = collection(db, 'generatedImages');
+
+export const fetchSpirits = async (userId: string): Promise<SpiritData[]> => {
+    const imagesCollection = collection(db, `users/${userId}/spirits`);
     const q = query(imagesCollection, orderBy('imageTimestamp', 'asc'));
     const querySnapshot = await getDocs(q);
 

@@ -3,11 +3,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Image, View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { fetchSpirits } from '../../utils/firebaseUtils';
 import { SpiritData } from '../../utils/types';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CollectionScreen = () => {
   const [photos, setPhotos] = useState<SpiritData[]>([]);
   const [selectedImage, setSelectedImage] = useState<SpiritData | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
+  const { user } = useAuth();
 
   const openBaseballCardView = (spiritData: SpiritData) => {
     setSelectedImage(spiritData);
@@ -28,7 +30,7 @@ const CollectionScreen = () => {
 
       const getPhotos = async () => {
         try {
-          const spirits = await fetchSpirits();
+          const spirits = await fetchSpirits(user?.uid);
           if (isActive) {
             setPhotos(spirits);
           }
