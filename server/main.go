@@ -17,16 +17,35 @@ import (
 	"spirit-snap/server/logic"
 	"spirit-snap/server/wrappers/datastore"
 	"spirit-snap/server/wrappers/file_storage"
+
+	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 )
 
 type Server struct {
+	FirebaseApp    *firebase.App
 	ImageProcessor logic.Processor
 }
 
-func NewServer(storage *file_storage.Client, ds *datastore.Client, rt http.RoundTripper) *Server {
-	return &Server{
-		ImageProcessor: logic.NewImageProcessor(storage, ds, rt),
+func NewServer(ctx context.Context, firebaseApp *firebase.App, rt http.RoundTripper) (*Server, error) {
+	firebaseStorageClient, err := firebaseApp.Storage(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing Storage client: %v", err)
 	}
+	storageClient := &file_storage.Client{
+		Client: firebaseStorageClient,
+	}
+
+	firestoreClient, err := firebaseApp.Firestore(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing Firestore client: %v", err)
+	}
+	datastoreClient := &datastore.Client{
+		Client: firestoreClient,
+	}
+	return &Server{
+		ImageProcessor: logic.NewImageProcessor(storageClient, datastoreClient, rt),
+	}, nil
 }
 
 func (s *Server) Close() {
@@ -66,31 +85,29 @@ func (s *Server) processImageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Define a flag for the port number with a default value of 8080.
 	port := *flag.Int("port", 8080, "Port for the HTTP server")
 	flag.Parse()
 
-	// Retrieve the Firebase JSON credentials from an environment variable
 	jsonCredentials := os.Getenv("FIREBASE_CREDENTIALS_JSON")
 	if jsonCredentials == "" {
 		log.Fatal("FIREBASE_CREDENTIALS_JSON environment variable is not set")
 	}
 
-	// Initialize connections.
 	ctx := context.Background()
-	fs, err := file_storage.NewClient(ctx, jsonCredentials)
+	opts := option.WithCredentialsJSON([]byte(jsonCredentials))
+	firebaseApp, err := firebase.NewApp(ctx, nil, opts)
 	if err != nil {
-		log.Fatalf("Failed to create Firebase storage client: %v", err)
+		log.Fatalf("Failed to initialize Firebase App: %v", err)
 	}
-	projectId := os.Getenv("GOOGLE_CLOUD_PROJECT_ID")
-	ds, err := datastore.NewClient(ctx, projectId, jsonCredentials)
+
+	s, err := NewServer(ctx, firebaseApp, http.DefaultTransport)
 	if err != nil {
-		log.Fatalf("Failed to create Firestore client: %v", err)
+		log.Fatalf("Failed to create server: %v", err)
 	}
-	s := NewServer(fs, ds, http.DefaultTransport)
 	defer s.Close()
 
 	http.HandleFunc("/ProcessImage", s.processImageHandler)
+
 	portMessage := fmt.Sprintf("Server is running on port %d.", port)
 	fmt.Println(portMessage)
 	log.Print(portMessage)

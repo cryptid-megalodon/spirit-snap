@@ -5,75 +5,58 @@ import (
 	"context"
 	"fmt"
 
-	"cloud.google.com/go/storage"
-	"google.golang.org/api/option"
+	"firebase.google.com/go/storage"
 )
 
 // Client is the production implementation of Storage,
 // using the actual Firebase Storage client.
 type Client struct {
-	client *storage.Client
+	Client *storage.Client
 }
 
-// Uploads data to Firebase Storage and returns the download URL.
+// Writes data to Firebase Storage and returns the download URL.
 //
 // Parameters:
 //   - ctx: The context for the operation.
-//   - bucketName: The name of the storage bucket.
+//   - bucketName: The name of the storage bucket (optional if using default bucket).
 //   - objectName: The desired name for the object in the storage.
 //   - data: The byte slice to be uploaded.
+//   - contentType: The MIME type of the file.
 //
 // Returns:
 //   - A string containing the download URL of the uploaded object if successful.
 //   - An error if any issue occurs during the upload process.
 //
 // This method writes data to the specified storage bucket and constructs a download URL for the uploaded object.
-func (s *Client) Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
-	bucket := s.client.Bucket(bucketName)
-	object := bucket.Object(objectName)
-	writer := object.NewWriter(ctx)
+func (c *Client) Write(ctx context.Context, bucketName string, objectName string, data []byte, contentType string) (string, error) {
+	// Use the default bucket if bucketName is not provided
+	bucket, err := c.Client.Bucket(bucketName)
+	if err != nil {
+		return "", fmt.Errorf("failed to get bucket: %v", err)
+	}
 
-	// Set the ContentType of the file
+	// Create a writer for the object
+	writer := bucket.Object(objectName).NewWriter(ctx)
 	writer.ContentType = contentType
 
+	// Write the data to the object
 	if _, err := writer.Write(data); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to write data to object: %v", err)
 	}
+
+	// Close the writer to finalize the upload
 	if err := writer.Close(); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to close object writer: %v", err)
 	}
 
-	attrs, err := object.Attrs(ctx)
+	// Generate a signed URL for the uploaded object
+	attrs, err := bucket.Object(objectName).Attrs(ctx)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get object attributes: %v", err)
 	}
 
-	downloadURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, attrs.Name)
+	downloadURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", attrs.Bucket, attrs.Name)
 	fmt.Printf("Uploaded %s and got download URL: %s\n", objectName, downloadURL)
 
 	return downloadURL, nil
-}
-
-// Closes the storage service and releases any resources.
-//
-// Returns:
-//   - An error if any issue occurs during the close operation.
-func (s *Client) Close() error {
-	return s.client.Close()
-}
-
-// Creates a new instance of Client.
-//
-// Parameters:
-//   - ctx: The context for the operation.
-//
-// Returns:
-//   - A FileStorage interface.
-//   - An error if any issue occurs during client creation.
-func NewClient(ctx context.Context, jsonCredentials string) (*Client, error) {
-	client, err := storage.NewClient(ctx, option.WithCredentialsJSON([]byte(jsonCredentials)))
-	if err != nil {
-		return nil, err
-	}
-	return &Client{client: client}, nil
 }

@@ -192,7 +192,6 @@ type ImageProcessor struct {
 // StorageInterface defines an interface for interacting with Storeage Wrapper.
 type StorageInterface interface {
 	Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error)
-	Close() error
 }
 
 // DatastoreInterface is an interface that defines methods for interacting with the Datastore backend.
@@ -215,7 +214,6 @@ func NewImageProcessor(storage StorageInterface, ds DatastoreInterface, rt http.
 }
 
 func (ip *ImageProcessor) Close() {
-	ip.StorageClient.Close()
 	ip.DatastoreClient.Close()
 }
 
