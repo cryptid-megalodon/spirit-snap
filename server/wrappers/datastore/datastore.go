@@ -3,13 +3,25 @@ package datastore
 
 import (
 	"context"
+	"fmt"
 
 	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
 )
 
 // Client is a wrapper around the Firestore Client client that implements Client interface.
 type Client struct {
 	Client *firestore.Client
+}
+
+func NewClient(ctx context.Context, app *firebase.App) (*Client, error) {
+	firestoreClient, err := app.Firestore(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing Firestore client: %v", err)
+	}
+	return &Client{
+		Client: firestoreClient,
+	}, nil
 }
 
 // AddDocument adds a new document to a specified Client collection.

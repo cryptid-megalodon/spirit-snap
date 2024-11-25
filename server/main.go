@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"spirit-snap/server/logic"
+	"spirit-snap/server/wrappers/auth"
 	"spirit-snap/server/wrappers/datastore"
 	"spirit-snap/server/wrappers/file_storage"
 
@@ -22,29 +23,37 @@ import (
 	"google.golang.org/api/option"
 )
 
+type ProcessorInterface interface {
+	Process(image *string, userId *string) error
+	Close()
+}
+
 type Server struct {
 	FirebaseApp    *firebase.App
-	ImageProcessor logic.Processor
+	ImageProcessor ProcessorInterface
+	AuthClient     *auth.Client
 }
 
 func NewServer(ctx context.Context, firebaseApp *firebase.App, rt http.RoundTripper) (*Server, error) {
-	firebaseStorageClient, err := firebaseApp.Storage(ctx)
+	storageClient, err := file_storage.NewClient(ctx, firebaseApp)
 	if err != nil {
-		return nil, fmt.Errorf("error initializing Storage client: %v", err)
-	}
-	storageClient := &file_storage.Client{
-		Client: firebaseStorageClient,
+		return nil, fmt.Errorf("error initializing Firebase Storage client: %v", err)
 	}
 
-	firestoreClient, err := firebaseApp.Firestore(ctx)
+	datastoreClient, err := datastore.NewClient(ctx, firebaseApp)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing Firestore client: %v", err)
 	}
-	datastoreClient := &datastore.Client{
-		Client: firestoreClient,
+
+	authClient, err := auth.NewClient(ctx, firebaseApp)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing Firebase Auth client: %v", err)
 	}
+
 	return &Server{
+		FirebaseApp:    firebaseApp,
 		ImageProcessor: logic.NewImageProcessor(storageClient, datastoreClient, rt),
+		AuthClient:     authClient,
 	}, nil
 }
 

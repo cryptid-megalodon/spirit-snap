@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	firebase "firebase.google.com/go"
 	"firebase.google.com/go/storage"
 )
 
@@ -12,6 +13,16 @@ import (
 // using the actual Firebase Storage client.
 type Client struct {
 	Client *storage.Client
+}
+
+func NewClient(ctx context.Context, firebaseApp *firebase.App) (*Client, error) {
+	firebaseStorageClient, err := firebaseApp.Storage(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing Firebase Storage client: %v", err)
+	}
+	return &Client{
+		Client: firebaseStorageClient,
+	}, nil
 }
 
 // Writes data to Firebase Storage and returns the download URL.

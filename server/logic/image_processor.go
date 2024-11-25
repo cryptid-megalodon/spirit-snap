@@ -158,11 +158,6 @@ Calculate the creature's Luck based on its lore and any traits that suggest unpr
 
 var luckPrompt = strings.ReplaceAll(humanReadableLuckPrompt, "\n", " ")
 
-type Processor interface {
-	Process(image *string, userId *string) error
-	Close()
-}
-
 type CreatureData struct {
 	Name                  string `json:"name"`
 	Description           string `json:"description"`
