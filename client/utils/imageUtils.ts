@@ -2,6 +2,8 @@
 
 import axios from 'axios';
 
+import { useAuth } from '../contexts/AuthContext';
+
 // Main endpoint into processing user images.
 // Function to make API call to process the camera image using the backend server.
 export const processImageBackendCall = async (base64Image: string, userId: string) => {
@@ -9,6 +11,11 @@ export const processImageBackendCall = async (base64Image: string, userId: strin
   if (url == undefined) {
     throw Error("API URL is not set.")
   }
+  const { user } = useAuth();
+  if (user == null) {
+      throw new Error("User not logged in");
+  }
+  const idToken = await user.getIdToken();
   const endpoint = url + "/ProcessImage";
   console.log("Process Image Endpoint:", endpoint)
   try {
@@ -21,6 +28,7 @@ export const processImageBackendCall = async (base64Image: string, userId: strin
       {
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
         },
       }
     );
