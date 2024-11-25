@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebase';
-import { loginAnonymously } from '../utils/AuthUtils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from 'expo-router';
 
 const neverOpenedKey = 'neverOpened';
@@ -29,18 +27,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // User is already logged in (anonymous or permanent)
+        // User is already logged in.
         setUser(currentUser);
-      // If the app has never been opened before, neverOpenedKey will be null.
-      } else if (await AsyncStorage.getItem(neverOpenedKey) === null) {
-        // No user session exists, create an anonymous account
-        try {
-          const anonUser = await loginAnonymously();
-          setUser(anonUser || null);
-        } catch (error) {
-          console.error('Error signing in anonymously:', error);
-        }
-        await AsyncStorage.setItem(neverOpenedKey, 'false');
       } else {
         // No user session exists, redirect to login/signup page
         navigation.navigate('login');
