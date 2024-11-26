@@ -15,11 +15,12 @@ import (
 	"net/http"
 	"os"
 	"spirit-snap/server/logic"
-	"spirit-snap/server/wrappers/auth"
+	"spirit-snap/server/middleware"
 	"spirit-snap/server/wrappers/datastore"
 	"spirit-snap/server/wrappers/file_storage"
 
 	firebase "firebase.google.com/go"
+	"firebase.google.com/go/auth"
 	"google.golang.org/api/option"
 )
 
@@ -45,7 +46,7 @@ func NewServer(ctx context.Context, firebaseApp *firebase.App, rt http.RoundTrip
 		return nil, fmt.Errorf("error initializing Firestore client: %v", err)
 	}
 
-	authClient, err := auth.NewClient(ctx, firebaseApp)
+	authClient, err := firebaseApp.Auth(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing Firebase Auth client: %v", err)
 	}
@@ -63,7 +64,6 @@ func (s *Server) Close() {
 
 type ImageData struct {
 	Base64Image string
-	UserId      string
 }
 
 // Hanldes the HTTP details for the processImage endpoint.
@@ -74,6 +74,12 @@ func (s *Server) processImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, ok := middleware.GetAuthenticatedUser(r.Context())
+	if !ok {
+		log.Printf("Error getting authenticated user.")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	var image ImageData
 	err := json.NewDecoder(r.Body).Decode(&image)
 	if err != nil {
@@ -82,7 +88,7 @@ func (s *Server) processImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.ImageProcessor.Process(&image.Base64Image, &image.UserId)
+	err = s.ImageProcessor.Process(&image.Base64Image, &token.UID)
 	if err != nil {
 		log.Printf("Error during image processing: %s", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -115,10 +121,12 @@ func main() {
 	}
 	defer s.Close()
 
-	http.HandleFunc("/ProcessImage", s.processImageHandler)
+	mux := http.NewServeMux()
+
+	mux.Handle("/ProcessImage", middleware.AuthMiddleware(s.AuthClient)(http.HandlerFunc(s.processImageHandler)))
 
 	portMessage := fmt.Sprintf("Server is running on port %d.", port)
 	fmt.Println(portMessage)
 	log.Print(portMessage)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), mux))
 }
