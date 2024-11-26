@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Auth, createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signInAnonymously, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 
-const LoginScreen: React.FC = () => {
+export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
@@ -109,5 +109,3 @@ export async function loginWithEmail(auth: Auth, email: string, password: string
     console.error('Error logging in:', error);
   }
 }
-
-export default LoginScreen;

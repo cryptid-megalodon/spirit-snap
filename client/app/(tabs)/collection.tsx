@@ -6,7 +6,7 @@ import { collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/fires
 import { ref, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase';
 
-const CollectionScreen = () => {
+export default function CollectionScreen() {
   const [photos, setPhotos] = useState<SpiritData[]>([]);
   const [selectedImage, setSelectedImage] = useState<SpiritData | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
@@ -218,5 +218,3 @@ const fetchSpirits = async (userId: string): Promise<SpiritData[]> => {
     );
     return spirits.filter((spirit): spirit is SpiritData => spirit !== undefined);
 }
-
-export default CollectionScreen;

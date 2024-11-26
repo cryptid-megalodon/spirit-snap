@@ -3,7 +3,7 @@ import { View, Image, TouchableOpacity, Modal, Text, StyleSheet, Button } from '
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 
-const UserIcon: React.FC = () => {
+export default function UserIcon() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -87,5 +87,3 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
-
-export default UserIcon;

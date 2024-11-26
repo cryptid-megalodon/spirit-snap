@@ -4,7 +4,7 @@ import { AuthProvider } from '../contexts/AuthContext';
 import UserIcon from '../components/UserIcon';
 import { View, StyleSheet } from 'react-native';
 
-const RootLayout: React.FC = () => {
+export default function RootLayout() {
   return (
     <AuthProvider>
       <View style={styles.container}>
@@ -23,5 +23,3 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
 });
-
-export default RootLayout;
