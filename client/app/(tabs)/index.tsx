@@ -8,10 +8,10 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function Tab() {
-  const { user } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
   const [zoom, setZoom] = useState(0);
   const cameraViewRef = useRef<CameraView | null>(null);
+  const { user, loading } = useAuth();
 
   if (!permission) {
     return <View />;
@@ -24,6 +24,21 @@ export default function Tab() {
         <Button onPress={requestPermission} title="Grant permission" />
       </View>
     );
+  }
+
+  if (loading) {
+    return (
+      <View>
+        <Text>Loading.</Text>
+      </View>
+    )
+  }
+  if (!user) {
+    return (
+      <View>
+        <Text>Please log in.</Text>
+      </View>
+    )
   }
 
   const handlePinchGesture = (event: PinchGestureHandlerGestureEvent) => {
@@ -39,11 +54,7 @@ export default function Tab() {
         const picture = await cameraViewRef.current.takePictureAsync({ base64: true });
         if (picture && picture.uri && picture.base64) {
           const base64Image = "data:image/jpg;base64," + picture.base64;
-          if (user && user.uid) {
-            processImageBackendCall(base64Image, user.uid);
-          } else {
-            console.error('Error: User is not authenticated.');
-          }
+          processImageBackendCall(base64Image, user);
         } else {
           console.error('Error: Picture is undefined or missing URI.');
         }
