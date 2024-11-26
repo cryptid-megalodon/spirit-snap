@@ -26,6 +26,7 @@ const CollectionScreen = () => {
 
   useFocusEffect(
     React.useCallback(() => {
+      if (!user) return;
       let isActive = true;
 
       const getPhotos = async () => {
