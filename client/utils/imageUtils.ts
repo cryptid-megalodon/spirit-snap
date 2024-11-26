@@ -2,16 +2,15 @@
 
 import axios from 'axios';
 
-import { useAuth } from '../contexts/AuthContext';
+import { User } from 'firebase/auth';
 
 // Main endpoint into processing user images.
 // Function to make API call to process the camera image using the backend server.
-export const processImageBackendCall = async (base64Image: string, userId: string) => {
+export const processImageBackendCall = async (base64Image: string, user: User) => {
   const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
   if (url == undefined) {
     throw Error("API URL is not set.")
   }
-  const { user } = useAuth();
   if (user == null) {
       throw new Error("User not logged in");
   }
@@ -23,7 +22,6 @@ export const processImageBackendCall = async (base64Image: string, userId: strin
       endpoint,
       {
         'base64Image': base64Image,
-        'userId': userId
       },
       {
         headers: {
