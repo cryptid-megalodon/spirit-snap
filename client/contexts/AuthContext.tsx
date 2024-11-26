@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebase';
-import { useNavigation } from 'expo-router';
 
 const neverOpenedKey = 'neverOpened';
 
@@ -22,22 +21,15 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        // User is already logged in.
-        setUser(currentUser);
-      } else {
-        // No user session exists, redirect to login/signup page
-        navigation.navigate('login');
-      }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
     });
     return unsubscribe;
   }, []);
-
+  
   const logout = async () => {
     try {
       await auth.signOut();
