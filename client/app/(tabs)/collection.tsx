@@ -179,8 +179,8 @@ interface SpiritData {
     description: string;
     primaryType: string;
     secondaryType: string;
-    generatedImageDownloadUrl: string;
     originalImageDownloadUrl: string;
+    generatedImageDownloadUrl: string;
   }
 
 const fetchSpirits = async (userId: string): Promise<SpiritData[]> => {
@@ -192,21 +192,14 @@ const fetchSpirits = async (userId: string): Promise<SpiritData[]> => {
         querySnapshot.docs.map(async (doc) => {
             try {
                 const data = doc.data();
-                const filePath = data.generatedImageDownloadUrl;
-                const originalFilePath = data.originalImageDownloadUrl;
-
-                // Retrieve download URLs for both the generated and original images
-                const generatedImageUrl = await getDownloadURL(ref(storage, filePath));
-                const originalImageUrl = await getDownloadURL(ref(storage, originalFilePath));
-
                 return {
                     id: doc.id,
                     name: data.name,
                     description: data.description,
                     primaryType: data.primaryType,
                     secondaryType: data.secondaryType,
-                    generatedImageDownloadUrl: generatedImageUrl,
-                    originalImageDownloadUrl: originalImageUrl
+                    originalImageDownloadUrl: await getDownloadURL(ref(storage, data.originalImageFilePath)),
+                    generatedImageDownloadUrl: await getDownloadURL(ref(storage, data.generatedImageFilePath)),
                 };
             }
             catch (error) {

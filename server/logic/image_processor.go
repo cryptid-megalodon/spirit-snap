@@ -186,7 +186,7 @@ type ImageProcessor struct {
 
 // StorageInterface defines an interface for interacting with Storeage Wrapper.
 type StorageInterface interface {
-	Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error)
+	Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error
 }
 
 // DatastoreInterface is an interface that defines methods for interacting with the Datastore backend.
@@ -274,22 +274,23 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) error {
 
 	// Step 3: Upload results to Firebase Storage and Firestore
 	ctx := context.Background()
-	origDownloadURL, err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", "photos/"+*userId+"/"+originalFilename, []byte(decodedOrigImageData), "image/jpeg")
-	if err != nil {
+	origFilePath := "photos/" + *userId + "/" + originalFilename
+	if err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", origFilePath, []byte(decodedOrigImageData), "image/jpeg"); err != nil {
 		return err
 	}
 
-	genDownloadURL, err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", "generatedImages/"+*userId+"/"+generatedFilename, generatedImage, "image/webp")
-	if err != nil {
+	genFilePath := "generatedImages/" + *userId + "/" + generatedFilename
+	if err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", genFilePath, generatedImage, "image/webp"); err != nil {
 		return err
 	}
-	generatedImageData["originalImageDownloadUrl"] = origDownloadURL
-	generatedImageData["generatedImageDownloadUrl"] = genDownloadURL
+	generatedImageData["originalImageFilePath"] = origFilePath
+	generatedImageData["generatedImageFilePath"] = genFilePath
 
 	err = ip.DatastoreClient.AddDocument(ctx, "users/"+*userId+"/spirits", generatedImageData)
 	if err != nil {
 		return err
 	}
+	log.Printf("Generated image data: %+v", generatedImageData)
 
 	return nil
 }
