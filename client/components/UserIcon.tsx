@@ -10,7 +10,7 @@ const UserIcon: React.FC = () => {
 
   const handlePress = () => {
     if (!user || user.isAnonymous) {
-      router.push('/login'); // Redirect to login/signup page
+      router.push('/login');
     } else {
       setMenuVisible(true); // Show user menu for logged-in users
     }
@@ -19,6 +19,7 @@ const UserIcon: React.FC = () => {
   const handleLogout = async () => {
     setMenuVisible(false);
     await logout();
+    router.push('/login');
   };
 
   return (
