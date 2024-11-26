@@ -80,36 +80,34 @@ export default function CollectionScreen() {
         <Text>No photos available</Text>
       )}
 
-{selectedImage && (
-  <Modal visible={true} transparent={true} animationType="slide">
-    <View style={styles.modalContainer}>
-      <Text style={styles.name}>{selectedImage.name}</Text>
+      {selectedImage && (
+        <Modal visible={true} transparent={true} animationType="slide">
+          <View style={styles.modalContainer}>
+            <Text style={styles.name}>{selectedImage.name}</Text>
 
-      {/* Main Image - shows either original or generated based on showOriginal */}
-      <Image
-        source={{ uri: showOriginal ? selectedImage.originalImageDownloadUrl : selectedImage.generatedImageDownloadUrl }}
-        style={styles.fullImage}
-      />
+            {/* Main Image - shows either original or generated based on showOriginal */}
+            <Image
+              source={{ uri: showOriginal ? selectedImage.originalImageDownloadUrl : selectedImage.generatedImageDownloadUrl }}
+              style={styles.fullImage}
+            />
 
-      <Text style={styles.description}>{truncateDescription(selectedImage.description)}</Text>
-      <Text style={styles.type}>Type: {displayType(selectedImage.primaryType, selectedImage.secondaryType)}</Text>
+            <Text style={styles.description}>{truncateDescription(selectedImage.description)}</Text>
+            <Text style={styles.type}>Type: {displayType(selectedImage.primaryType, selectedImage.secondaryType)}</Text>
 
-      {/* Small Image in Bottom Right */}
-      <TouchableOpacity onPress={toggleImage} style={styles.smallImageContainer}>
-        <Image
-          source={{ uri: showOriginal ? selectedImage.generatedImageDownloadUrl : selectedImage.originalImageDownloadUrl }}
-          style={styles.smallImage}
-        />
-      </TouchableOpacity>
+            {/* Small Image in Bottom Right */}
+            <TouchableOpacity onPress={toggleImage} style={styles.smallImageContainer}>
+              <Image
+                source={{ uri: showOriginal ? selectedImage.generatedImageDownloadUrl : selectedImage.originalImageDownloadUrl }}
+                style={styles.smallImage}
+              />
+            </TouchableOpacity>
 
-      <TouchableOpacity onPress={closeBaseballCardView} style={styles.closeButton}>
-        <Text>Close</Text>
-      </TouchableOpacity>
-    </View>
-  </Modal>
-)}
-
-
+            <TouchableOpacity onPress={closeBaseballCardView} style={styles.closeButton}>
+              <Text>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 };
