@@ -2,9 +2,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler';
-import {
-  processImageBackendCall
-} from '../../utils/imageUtils';
+import axios from 'axios';
+import { User } from 'firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function Tab() {
@@ -120,3 +119,37 @@ const styles = StyleSheet.create({
     margin: 5,
   },
 });
+
+// Main endpoint into processing user images.
+// Function to make API call to process the camera image using the backend server.
+export const processImageBackendCall = async (base64Image: string, user: User) => {
+  const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
+  if (url == undefined) {
+    throw Error("API URL is not set.")
+  }
+  if (user == null) {
+      throw new Error("User not logged in");
+  }
+  const idToken = await user.getIdToken();
+  const endpoint = url + "/ProcessImage";
+  console.log("Process Image Endpoint:", endpoint)
+  try {
+    const response = await axios.post(
+      endpoint,
+      {
+        'base64Image': base64Image,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+      }
+    );
+    console.log("ProcessImage Response Status:", response.status);
+    return null;
+  } catch (error) {
+    console.error('Error fetching image caption:', error);
+    return null;
+  }
+};

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Image, View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
-import { fetchSpirits } from '../../utils/firebaseUtils';
-import { SpiritData } from '../../utils/types';
 import { useAuth } from '../../contexts/AuthContext';
+import { collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../../firebase';
 
 const CollectionScreen = () => {
   const [photos, setPhotos] = useState<SpiritData[]>([]);
@@ -173,5 +174,49 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+
+interface SpiritData {
+    id: string;
+    name: string;
+    description: string;
+    primaryType: string;
+    secondaryType: string;
+    generatedImageDownloadUrl: string;
+    originalImageDownloadUrl: string;
+  }
+
+const fetchSpirits = async (userId: string): Promise<SpiritData[]> => {
+    const imagesCollection = collection(db, `users/${userId}/spirits`);
+    const q = query(imagesCollection, orderBy('imageTimestamp', 'asc'));
+    const querySnapshot = await getDocs(q);
+
+    const spirits = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+            try {
+                const data = doc.data();
+                const filePath = data.generatedImageDownloadUrl;
+                const originalFilePath = data.originalImageDownloadUrl;
+
+                // Retrieve download URLs for both the generated and original images
+                const generatedImageUrl = await getDownloadURL(ref(storage, filePath));
+                const originalImageUrl = await getDownloadURL(ref(storage, originalFilePath));
+
+                return {
+                    id: doc.id,
+                    name: data.name,
+                    description: data.description,
+                    primaryType: data.primaryType,
+                    secondaryType: data.secondaryType,
+                    generatedImageDownloadUrl: generatedImageUrl,
+                    originalImageDownloadUrl: originalImageUrl
+                };
+            }
+            catch (error) {
+                console.log(error);
+            }
+        })
+    );
+    return spirits.filter((spirit): spirit is SpiritData => spirit !== undefined);
+}
 
 export default CollectionScreen;
