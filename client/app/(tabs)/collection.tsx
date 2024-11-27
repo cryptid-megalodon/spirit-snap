@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Image, View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import { collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../firebase';
+import axios from 'axios'
+import { User } from 'firebase/auth';
 
 export default function CollectionScreen() {
   const [photos, setPhotos] = useState<SpiritData[]>([]);
@@ -32,7 +31,7 @@ export default function CollectionScreen() {
 
       const getPhotos = async () => {
         try {
-          const spirits = await fetchSpirits(user?.uid);
+          const spirits = await fetchSpirits(user);
           if (isActive) {
             setPhotos(spirits);
           }
@@ -71,7 +70,7 @@ export default function CollectionScreen() {
     <View style={styles.container}>
       {photos.length > 0 ? (
         <FlatList
-          data={[...photos].reverse()}
+          data={[...photos]}
           renderItem={renderPhoto}
           keyExtractor={(item) => item.id}
           numColumns={3}
@@ -183,29 +182,42 @@ interface SpiritData {
     generatedImageDownloadUrl: string;
   }
 
-const fetchSpirits = async (userId: string): Promise<SpiritData[]> => {
-    const imagesCollection = collection(db, `users/${userId}/spirits`);
-    const q = query(imagesCollection, orderBy('imageTimestamp', 'asc'));
-    const querySnapshot = await getDocs(q);
-
-    const spirits = await Promise.all(
-        querySnapshot.docs.map(async (doc) => {
-            try {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    name: data.name,
-                    description: data.description,
-                    primaryType: data.primaryType,
-                    secondaryType: data.secondaryType,
-                    originalImageDownloadUrl: await getDownloadURL(ref(storage, data.originalImageFilePath)),
-                    generatedImageDownloadUrl: await getDownloadURL(ref(storage, data.generatedImageFilePath)),
-                };
-            }
-            catch (error) {
-                console.log(error);
-            }
-        })
+const fetchSpirits = async (user: User): Promise<SpiritData[]> => {
+  const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
+  if (url == undefined) {
+    throw Error("API URL is not set.")
+  }
+  if (user == null) {
+      throw new Error("User not logged in");
+  }
+  console.log("FetchSpirits User:", user)
+  const idToken = await user.getIdToken();
+  const endpoint = url + "/FetchSpirits";
+  console.log("FetchSpirits Endpoint:", endpoint)
+  try {
+    const response = await axios.get(
+      endpoint,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+      }
     );
-    return spirits.filter((spirit): spirit is SpiritData => spirit !== undefined);
-}
+    const spiritsData = response.data as SpiritData[];
+    console.log("Non-filtered FetchSpirits Spirits Data:", spiritsData)
+    var filtered_spirits = spiritsData.filter(spirit => 
+      spirit.id !== "" && 
+      spirit.name !== "" && 
+      spirit.description !== "" && 
+      spirit.primaryType !== "" && 
+      spirit.secondaryType !== "" && 
+      spirit.originalImageDownloadUrl !== "" && 
+      spirit.generatedImageDownloadUrl !== ""
+    );
+    return filtered_spirits;
+  } catch (error) {
+    console.error("Error fetching spirts:", error);
+    return [];
+  }
+};
