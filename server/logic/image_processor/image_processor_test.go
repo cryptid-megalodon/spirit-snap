@@ -1,4 +1,4 @@
-package logic
+package image_processor
 
 import (
 	"bytes"
@@ -42,15 +42,15 @@ func (m *MockFirestoreClient) Close() error {
 }
 
 type MockStorageClient struct {
-	WriteFunc func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error)
+	WriteFunc func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error
 	CloseFunc func() error
 }
 
-func (m *MockStorageClient) Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
+func (m *MockStorageClient) Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error {
 	if m.WriteFunc != nil {
 		return m.WriteFunc(ctx, bucketName, objectName, data, contentType)
 	}
-	return "mock-download-url", nil
+	return nil
 }
 
 func (m *MockStorageClient) Close() error {
@@ -73,8 +73,8 @@ func TestProcess_Success(t *testing.T) {
 
 	// Mock StorageClient
 	mockStorage := &MockStorageClient{
-		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
-			return "http://mock-download-url.com/" + objectName, nil
+		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error {
+			return nil
 		},
 	}
 
@@ -339,8 +339,8 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 
 	// Mock StorageClient to fail on Write
 	mockStorage := &MockStorageClient{
-		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
-			return "", errors.New("storage write failed")
+		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error {
+			return errors.New("storage write failed")
 		},
 	}
 
@@ -413,8 +413,8 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 
 	// Mock StorageClient with successful writes
 	mockStorage := &MockStorageClient{
-		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) (string, error) {
-			return "http://mock-download-url.com/" + objectName, nil
+		WriteFunc: func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error {
+			return nil
 		},
 	}
 

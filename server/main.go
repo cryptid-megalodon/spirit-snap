@@ -14,7 +14,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"spirit-snap/server/logic"
+	"spirit-snap/server/logic/collection_fetcher"
+	"spirit-snap/server/logic/image_processor"
 	"spirit-snap/server/middleware"
 	"spirit-snap/server/wrappers/datastore"
 	"spirit-snap/server/wrappers/file_storage"
@@ -24,15 +25,24 @@ import (
 	"google.golang.org/api/option"
 )
 
-type ProcessorInterface interface {
+type ImageProcessorInterface interface {
 	Process(image *string, userId *string) error
 	Close()
 }
 
+type ColectionFetcherInterface interface {
+	Fetch(*string, int, []interface{}) ([]collection_fetcher.SpiritData, error)
+}
+
+type AuthInterface interface {
+	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
+}
+
 type Server struct {
-	FirebaseApp    *firebase.App
-	ImageProcessor ProcessorInterface
-	AuthClient     *auth.Client
+	FirebaseApp       *firebase.App
+	ImageProcessor    ImageProcessorInterface
+	CollectionFetcher ColectionFetcherInterface
+	AuthClient        AuthInterface
 }
 
 func NewServer(ctx context.Context, firebaseApp *firebase.App, rt http.RoundTripper) (*Server, error) {
@@ -52,9 +62,10 @@ func NewServer(ctx context.Context, firebaseApp *firebase.App, rt http.RoundTrip
 	}
 
 	return &Server{
-		FirebaseApp:    firebaseApp,
-		ImageProcessor: logic.NewImageProcessor(storageClient, datastoreClient, rt),
-		AuthClient:     authClient,
+		FirebaseApp:       firebaseApp,
+		ImageProcessor:    image_processor.NewImageProcessor(storageClient, datastoreClient, rt),
+		CollectionFetcher: collection_fetcher.NewCollectionFetcher(storageClient, datastoreClient),
+		AuthClient:        authClient,
 	}, nil
 }
 
@@ -99,6 +110,30 @@ func (s *Server) processImageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Image processed successfully"))
 }
 
+func (s *Server) fetchSpiritsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Only GET method is allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	token, ok := middleware.GetAuthenticatedUser(r.Context())
+	if !ok {
+		log.Printf("Error getting authenticated user.")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	spirits, err := s.CollectionFetcher.Fetch(&token.UID, 10, nil)
+	if err != nil {
+		log.Printf("Error fetching spirits: %s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(spirits)
+}
+
 func main() {
 	port := *flag.Int("port", 8080, "Port for the HTTP server")
 	flag.Parse()
@@ -124,6 +159,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.Handle("/ProcessImage", middleware.AuthMiddleware(s.AuthClient)(http.HandlerFunc(s.processImageHandler)))
+	mux.Handle("/FetchSpirits", middleware.AuthMiddleware(s.AuthClient)(http.HandlerFunc(s.fetchSpiritsHandler)))
 
 	portMessage := fmt.Sprintf("Server is running on port %d.", port)
 	fmt.Println(portMessage)

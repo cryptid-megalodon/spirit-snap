@@ -1,5 +1,5 @@
 // The logic for the processImage handler endpoint.
-package logic
+package image_processor
 
 import (
 	"bytes"
