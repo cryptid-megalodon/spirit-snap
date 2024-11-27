@@ -59,13 +59,13 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 
 	mockStorage.On("GetDownloadURL",
 		mock.Anything,
-		"original/path",
+		"spirit-snap.appspot.com",
 		"original/path",
 	).Return("http://original-url", nil)
 
 	mockStorage.On("GetDownloadURL",
 		mock.Anything,
-		"generated/path",
+		"spirit-snap.appspot.com",
 		"generated/path",
 	).Return("http://generated-url", nil)
 
@@ -83,4 +83,48 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 
 	mockDatastore.AssertExpectations(t)
 	mockStorage.AssertExpectations(t)
+}
+func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
+	mockStorage := &MockStorageClient{}
+	mockDatastore := &MockDatastoreClient{}
+	fetcher := NewCollectionFetcher(mockStorage, mockDatastore)
+
+	userId := "testUser123"
+	limit := 10
+	startAfter := []interface{}{"lastDoc"}
+
+	testSpirit := map[string]interface{}{
+		"id":                     nil,
+		"name":                   nil,
+		"description":            nil,
+		"primaryType":            nil,
+		"secondaryType":          nil,
+		"originalImageFilePath":  nil,
+		"generatedImageFilePath": nil,
+	}
+
+	mockDatastore.On("GetCollection",
+		mock.Anything,
+		"users/testUser123/spirits",
+		limit,
+		"imageTimestamp",
+		datastore.Desc,
+		startAfter,
+	).Return(&datastore.PageResult{
+		Documents: []map[string]interface{}{testSpirit},
+	}, nil)
+
+	spirits, err := fetcher.Fetch(&userId, limit, startAfter)
+
+	assert.NoError(t, err)
+	assert.Len(t, spirits, 1)
+	assert.Equal(t, "", spirits[0].ID)
+	assert.Equal(t, "", spirits[0].Name)
+	assert.Equal(t, "", spirits[0].Description)
+	assert.Equal(t, "", spirits[0].PrimaryType)
+	assert.Equal(t, "", spirits[0].SecondaryType)
+	assert.Equal(t, "", spirits[0].OriginalImageDownloadUrl)
+	assert.Equal(t, "", spirits[0].GeneratedImageDownloadUrl)
+	mockDatastore.AssertExpectations(t)
+	mockStorage.AssertNotCalled(t, "GetDownloadURL")
 }

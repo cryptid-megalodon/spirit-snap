@@ -93,7 +93,9 @@ func (r *Client) GetCollection(ctx context.Context, collectionName string, limit
 		}
 
 		lastDoc = doc
-		docs = append(docs, doc.Data())
+		doc_data := doc.Data()
+		doc_data["id"] = doc.Ref.ID
+		docs = append(docs, doc_data)
 	}
 
 	hasMore := len(docs) > limit

@@ -48,21 +48,26 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 	// Get download URLs for each spirit's images
 	var spiritData []SpiritData
 	for _, spirit := range result.Documents {
-		originalUrl, err := sp.StorageClient.GetDownloadURL(ctx, spirit["originalImageFilePath"].(string), spirit["originalImageFilePath"].(string))
-		if err != nil {
-			continue
+		id, _ := spirit["id"].(string)
+		name, _ := spirit["name"].(string)
+		description, _ := spirit["description"].(string)
+		primaryType, _ := spirit["primaryType"].(string)
+		secondaryType, _ := spirit["secondaryType"].(string)
+
+		var originalUrl, generatedUrl string
+		if originalPath, ok := spirit["originalImageFilePath"].(string); ok {
+			originalUrl, _ = sp.StorageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", originalPath)
 		}
-		generatedUrl, err := sp.StorageClient.GetDownloadURL(ctx, spirit["generatedImageFilePath"].(string), spirit["generatedImageFilePath"].(string))
-		if err != nil {
-			continue
+		if generatedPath, ok := spirit["generatedImageFilePath"].(string); ok {
+			generatedUrl, _ = sp.StorageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", generatedPath)
 		}
 
 		spiritData = append(spiritData, SpiritData{
-			ID:                        spirit["id"].(string),
-			Name:                      spirit["name"].(string),
-			Description:               spirit["description"].(string),
-			PrimaryType:               spirit["primaryType"].(string),
-			SecondaryType:             spirit["secondaryType"].(string),
+			ID:                        id,
+			Name:                      name,
+			Description:               description,
+			PrimaryType:               primaryType,
+			SecondaryType:             secondaryType,
 			OriginalImageDownloadUrl:  originalUrl,
 			GeneratedImageDownloadUrl: generatedUrl,
 		})
