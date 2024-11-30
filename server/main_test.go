@@ -8,8 +8,8 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"spirit-snap/server/logic/collection_fetcher"
 	"spirit-snap/server/middleware"
+	"spirit-snap/server/models"
 	"testing"
 
 	"firebase.google.com/go/auth"
@@ -29,10 +29,10 @@ func (m *MockImageProcessor) Close() {}
 
 // MockCollectionFetcher implements the CollectionFetcher interface for testing
 type MockCollectionFetcher struct {
-	FetchFunc func(*string, int, []interface{}) ([]collection_fetcher.SpiritData, error)
+	FetchFunc func(*string, int, []interface{}) ([]models.Spirit, error)
 }
 
-func (m *MockCollectionFetcher) Fetch(userId *string, limit int, cursor []interface{}) ([]collection_fetcher.SpiritData, error) {
+func (m *MockCollectionFetcher) Fetch(userId *string, limit int, cursor []interface{}) ([]models.Spirit, error) {
 	return m.FetchFunc(userId, limit, cursor)
 }
 
@@ -232,7 +232,7 @@ func TestFetchSpiritsHandler_InternalServerError(t *testing.T) {
 	// Setup
 	server := &Server{
 		CollectionFetcher: &MockCollectionFetcher{
-			FetchFunc: func(userId *string, limit int, cursor []interface{}) ([]collection_fetcher.SpiritData, error) {
+			FetchFunc: func(userId *string, limit int, cursor []interface{}) ([]models.Spirit, error) {
 				return nil, fmt.Errorf("mock error")
 			},
 		},
@@ -254,14 +254,14 @@ func TestFetchSpiritsHandler_InternalServerError(t *testing.T) {
 
 func TestFetchSpiritsHandler_Success(t *testing.T) {
 	// Setup
-	mockSpirits := []collection_fetcher.SpiritData{
+	mockSpirits := []models.Spirit{
 		{ID: "1", Name: "Spirit 1"},
 		{ID: "2", Name: "Spirit 2"},
 	}
 
 	server := &Server{
 		CollectionFetcher: &MockCollectionFetcher{
-			FetchFunc: func(userId *string, limit int, cursor []interface{}) ([]collection_fetcher.SpiritData, error) {
+			FetchFunc: func(userId *string, limit int, cursor []interface{}) ([]models.Spirit, error) {
 				return mockSpirits, nil
 			},
 		},
@@ -278,7 +278,7 @@ func TestFetchSpiritsHandler_Success(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
-	var response []collection_fetcher.SpiritData
+	var response []models.Spirit
 	err := json.NewDecoder(rr.Body).Decode(&response)
 	assert.NoError(t, err)
 	assert.Equal(t, mockSpirits, response)

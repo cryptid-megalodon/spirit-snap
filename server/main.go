@@ -17,6 +17,7 @@ import (
 	"spirit-snap/server/logic/collection_fetcher"
 	"spirit-snap/server/logic/image_processor"
 	"spirit-snap/server/middleware"
+	"spirit-snap/server/models"
 	"spirit-snap/server/wrappers/datastore"
 	"spirit-snap/server/wrappers/file_storage"
 
@@ -31,7 +32,7 @@ type ImageProcessorInterface interface {
 }
 
 type ColectionFetcherInterface interface {
-	Fetch(*string, int, []interface{}) ([]collection_fetcher.SpiritData, error)
+	Fetch(*string, int, []interface{}) ([]models.Spirit, error)
 }
 
 type AuthInterface interface {

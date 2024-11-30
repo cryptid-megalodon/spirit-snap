@@ -78,8 +78,8 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 	assert.Equal(t, "Test Description", spirits[0].Description)
 	assert.Equal(t, "Type1", spirits[0].PrimaryType)
 	assert.Equal(t, "Type2", spirits[0].SecondaryType)
-	assert.Equal(t, "http://original-url", spirits[0].OriginalImageDownloadUrl)
-	assert.Equal(t, "http://generated-url", spirits[0].GeneratedImageDownloadUrl)
+	assert.Equal(t, "http://original-url", spirits[0].OriginalImageURL)
+	assert.Equal(t, "http://generated-url", spirits[0].GeneratedImageURL)
 
 	mockDatastore.AssertExpectations(t)
 	mockStorage.AssertExpectations(t)
@@ -123,8 +123,8 @@ func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 	assert.Equal(t, "", spirits[0].Description)
 	assert.Equal(t, "", spirits[0].PrimaryType)
 	assert.Equal(t, "", spirits[0].SecondaryType)
-	assert.Equal(t, "", spirits[0].OriginalImageDownloadUrl)
-	assert.Equal(t, "", spirits[0].GeneratedImageDownloadUrl)
+	assert.Equal(t, "", spirits[0].OriginalImageURL)
+	assert.Equal(t, "", spirits[0].GeneratedImageURL)
 	mockDatastore.AssertExpectations(t)
 	mockStorage.AssertNotCalled(t, "GetDownloadURL")
 }

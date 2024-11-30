@@ -3,18 +3,9 @@ package collection_fetcher
 import (
 	"context"
 	"fmt"
+	"spirit-snap/server/models"
 	"spirit-snap/server/wrappers/datastore"
 )
-
-type SpiritData struct {
-	ID                        string `json:"id"`
-	Name                      string `json:"name"`
-	Description               string `json:"description"`
-	PrimaryType               string `json:"primaryType"`
-	SecondaryType             string `json:"secondaryType"`
-	OriginalImageDownloadUrl  string `json:"originalImageDownloadUrl"`
-	GeneratedImageDownloadUrl string `json:"generatedImageDownloadUrl"`
-}
 
 type StorageInterface interface {
 	GetDownloadURL(ctx context.Context, bucketName, objectName string) (string, error)
@@ -36,7 +27,7 @@ func NewCollectionFetcher(storage StorageInterface, ds CollectionDatastoreInterf
 	}
 }
 
-func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []interface{}) ([]SpiritData, error) {
+func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []interface{}) ([]models.Spirit, error) {
 	ctx := context.Background()
 
 	// Get spirits collection with pagination
@@ -46,7 +37,7 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 	}
 
 	// Get download URLs for each spirit's images
-	var spiritData []SpiritData
+	var spiritData []models.Spirit
 	for _, spirit := range result.Documents {
 		id, _ := spirit["id"].(string)
 		name, _ := spirit["name"].(string)
@@ -62,14 +53,14 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 			generatedUrl, _ = sp.StorageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", generatedPath)
 		}
 
-		spiritData = append(spiritData, SpiritData{
-			ID:                        id,
-			Name:                      name,
-			Description:               description,
-			PrimaryType:               primaryType,
-			SecondaryType:             secondaryType,
-			OriginalImageDownloadUrl:  originalUrl,
-			GeneratedImageDownloadUrl: generatedUrl,
+		spiritData = append(spiritData, models.Spirit{
+			ID:                id,
+			Name:              name,
+			Description:       description,
+			PrimaryType:       primaryType,
+			SecondaryType:     secondaryType,
+			OriginalImageURL:  originalUrl,
+			GeneratedImageURL: generatedUrl,
 		})
 	}
 
