@@ -44,6 +44,17 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 		"secondaryType":          "Type2",
 		"originalImageFilePath":  "original/path",
 		"generatedImageFilePath": "generated/path",
+		"agility":                10,
+		"arcana":                 15,
+		"aura":                   20,
+		"charisma":               25,
+		"endurance":              30,
+		"height":                 180,
+		"weight":                 75,
+		"intimidation":           40,
+		"luck":                   45,
+		"strength":               50,
+		"toughness":              55,
 	}
 
 	mockDatastore.On("GetCollection",
@@ -80,10 +91,22 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 	assert.Equal(t, "Type2", spirits[0].SecondaryType)
 	assert.Equal(t, "http://original-url", spirits[0].OriginalImageURL)
 	assert.Equal(t, "http://generated-url", spirits[0].GeneratedImageURL)
+	assert.Equal(t, 10, *spirits[0].Agility)
+	assert.Equal(t, 15, *spirits[0].Arcana)
+	assert.Equal(t, 20, *spirits[0].Aura)
+	assert.Equal(t, 25, *spirits[0].Charisma)
+	assert.Equal(t, 30, *spirits[0].Endurance)
+	assert.Equal(t, 180, *spirits[0].Height)
+	assert.Equal(t, 75, *spirits[0].Weight)
+	assert.Equal(t, 40, *spirits[0].Intimidation)
+	assert.Equal(t, 45, *spirits[0].Luck)
+	assert.Equal(t, 50, *spirits[0].Strength)
+	assert.Equal(t, 55, *spirits[0].Toughness)
 
 	mockDatastore.AssertExpectations(t)
 	mockStorage.AssertExpectations(t)
 }
+
 func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 	mockStorage := &MockStorageClient{}
 	mockDatastore := &MockDatastoreClient{}
@@ -101,6 +124,17 @@ func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 		"secondaryType":          nil,
 		"originalImageFilePath":  nil,
 		"generatedImageFilePath": nil,
+		"agility":                nil,
+		"arcana":                 nil,
+		"aura":                   nil,
+		"charisma":               nil,
+		"endurance":              nil,
+		"height":                 nil,
+		"weight":                 nil,
+		"intimidation":           nil,
+		"luck":                   nil,
+		"strength":               nil,
+		"toughness":              nil,
 	}
 
 	mockDatastore.On("GetCollection",
@@ -125,6 +159,18 @@ func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 	assert.Equal(t, "", spirits[0].SecondaryType)
 	assert.Equal(t, "", spirits[0].OriginalImageURL)
 	assert.Equal(t, "", spirits[0].GeneratedImageURL)
+	assert.Nil(t, spirits[0].Agility)
+	assert.Nil(t, spirits[0].Arcana)
+	assert.Nil(t, spirits[0].Aura)
+	assert.Nil(t, spirits[0].Charisma)
+	assert.Nil(t, spirits[0].Endurance)
+	assert.Nil(t, spirits[0].Height)
+	assert.Nil(t, spirits[0].Weight)
+	assert.Nil(t, spirits[0].Intimidation)
+	assert.Nil(t, spirits[0].Luck)
+	assert.Nil(t, spirits[0].Strength)
+	assert.Nil(t, spirits[0].Toughness)
+
 	mockDatastore.AssertExpectations(t)
 	mockStorage.AssertNotCalled(t, "GetDownloadURL")
 }

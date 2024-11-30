@@ -53,6 +53,19 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 			generatedUrl, _ = sp.StorageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", generatedPath)
 		}
 
+		// Extract numeric fields and set default values if not present
+		agility := getOptionalIntField(spirit, "agility")
+		arcana := getOptionalIntField(spirit, "arcana")
+		aura := getOptionalIntField(spirit, "aura")
+		charisma := getOptionalIntField(spirit, "charisma")
+		endurance := getOptionalIntField(spirit, "endurance")
+		height := getOptionalIntField(spirit, "height")
+		weight := getOptionalIntField(spirit, "weight")
+		intimidation := getOptionalIntField(spirit, "intimidation")
+		luck := getOptionalIntField(spirit, "luck")
+		strength := getOptionalIntField(spirit, "strength")
+		toughness := getOptionalIntField(spirit, "toughness")
+
 		spiritData = append(spiritData, models.Spirit{
 			ID:                id,
 			Name:              name,
@@ -61,8 +74,40 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 			SecondaryType:     secondaryType,
 			OriginalImageURL:  originalUrl,
 			GeneratedImageURL: generatedUrl,
+
+			Agility:      agility,
+			Arcana:       arcana,
+			Aura:         aura,
+			Charisma:     charisma,
+			Endurance:    endurance,
+			Height:       height,
+			Weight:       weight,
+			Intimidation: intimidation,
+			Luck:         luck,
+			Strength:     strength,
+			Toughness:    toughness,
 		})
 	}
 
 	return spiritData, nil
+}
+
+// Helper function to safely extract integer fields from the map
+func getOptionalIntField(spirit map[string]interface{}, fieldName string) *int {
+	value, ok := spirit[fieldName]
+	if !ok || value == nil {
+		return nil
+	}
+	switch v := value.(type) {
+	case int:
+		return &v
+	case int64:
+		val := int(v)
+		return &val
+	case float64:
+		val := int(v)
+		return &val
+	default:
+		return nil
+	}
 }
