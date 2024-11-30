@@ -131,7 +131,18 @@ async function fetchSpirits(user: User): Promise<Spirit[]> {
         spirit.primaryType !== '' &&
         spirit.secondaryType !== '' &&
         spirit.originalImageDownloadUrl !== '' &&
-        spirit.generatedImageDownloadUrl !== ''
+        spirit.generatedImageDownloadUrl !== '' &&
+        spirit.agility !== null &&
+        spirit.arcana !== null &&
+        spirit.aura !== null &&
+        spirit.charisma !== null &&
+        spirit.endurance !== null &&
+        spirit.height !== null &&
+        spirit.weight !== null &&
+        spirit.intimidation !== null &&
+        spirit.luck !== null &&
+        spirit.strength !== null &&
+        spirit.toughness !== null
     );
     return filtered_spirits;
   } catch (error) {
