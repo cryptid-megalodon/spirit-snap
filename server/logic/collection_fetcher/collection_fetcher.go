@@ -39,19 +39,15 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 	// Get download URLs for each spirit's images
 	var spiritData []models.Spirit
 	for _, spirit := range result.Documents {
-		id, _ := spirit["id"].(string)
-		name, _ := spirit["name"].(string)
-		description, _ := spirit["description"].(string)
-		primaryType, _ := spirit["primaryType"].(string)
-		secondaryType, _ := spirit["secondaryType"].(string)
+		id := getOptionalStringField(spirit, "id")
+		name := getOptionalStringField(spirit, "name")
+		description := getOptionalStringField(spirit, "description")
+		primaryType := getOptionalStringField(spirit, "primaryType")
+		secondaryType := getOptionalStringField(spirit, "secondaryType")
 
-		var originalUrl, generatedUrl string
-		if originalPath, ok := spirit["originalImageFilePath"].(string); ok {
-			originalUrl, _ = sp.StorageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", originalPath)
-		}
-		if generatedPath, ok := spirit["generatedImageFilePath"].(string); ok {
-			generatedUrl, _ = sp.StorageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", generatedPath)
-		}
+		var originalUrl, generatedUrl *string
+		originalUrl = getImageURL(ctx, sp.StorageClient, spirit, "originalImageFilePath")
+		generatedUrl = getImageURL(ctx, sp.StorageClient, spirit, "generatedImageFilePath")
 
 		// Extract numeric fields and set default values if not present
 		agility := getOptionalIntField(spirit, "agility")
@@ -92,6 +88,15 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 	return spiritData, nil
 }
 
+func getImageURL(ctx context.Context, storageClient StorageInterface, spirit map[string]interface{}, pathField string) *string {
+	if path, ok := spirit[pathField].(string); ok {
+		if url, err := storageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", path); err == nil {
+			return &url
+		}
+	}
+	return nil
+}
+
 // Helper function to safely extract integer fields from the map
 func getOptionalIntField(spirit map[string]interface{}, fieldName string) *int {
 	value, ok := spirit[fieldName]
@@ -110,4 +115,16 @@ func getOptionalIntField(spirit map[string]interface{}, fieldName string) *int {
 	default:
 		return nil
 	}
+}
+
+// Helper function to safely extract string fields from the map
+func getOptionalStringField(spirit map[string]interface{}, fieldName string) *string {
+	value, ok := spirit[fieldName]
+	if !ok || value == nil {
+		return nil
+	}
+	if v, ok := value.(string); ok {
+		return &v
+	}
+	return nil
 }

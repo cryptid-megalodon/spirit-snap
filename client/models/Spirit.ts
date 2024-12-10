@@ -1,11 +1,11 @@
 export interface Spirit {
-    id: string;
-    name: string;
-    description: string;
-    primaryType: string;
-    secondaryType: string;
-    originalImageDownloadUrl: string;
-    generatedImageDownloadUrl: string;
+    id: string | null;
+    name: string | null;
+    description: string | null;
+    primaryType: string | null;
+    secondaryType: string | null;
+    originalImageDownloadUrl: string | null;
+    generatedImageDownloadUrl: string | null;
 
     agility: number | null;
     arcana: number | null;

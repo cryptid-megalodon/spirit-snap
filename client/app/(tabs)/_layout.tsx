@@ -16,6 +16,19 @@ export default function TabLayout() {
         options={{
           title: 'Collection',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="book" color={color} />,
+          href: {
+            pathname: "/collection",
+            params: {
+              openTeamEditor: "false",
+            }
+          }
+        }}
+      />
+      <Tabs.Screen
+        name="teams"
+        options={{
+          title: 'Teams',
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="star" color={color} />,
         }}
       />
     </Tabs>

@@ -84,24 +84,44 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, spirits, 1)
-	assert.Equal(t, "spirit1", spirits[0].ID)
-	assert.Equal(t, "Test Spirit", spirits[0].Name)
-	assert.Equal(t, "Test Description", spirits[0].Description)
-	assert.Equal(t, "Type1", spirits[0].PrimaryType)
-	assert.Equal(t, "Type2", spirits[0].SecondaryType)
-	assert.Equal(t, "http://original-url", spirits[0].OriginalImageURL)
-	assert.Equal(t, "http://generated-url", spirits[0].GeneratedImageURL)
-	assert.Equal(t, 10, *spirits[0].Agility)
-	assert.Equal(t, 15, *spirits[0].Arcana)
-	assert.Equal(t, 20, *spirits[0].Aura)
-	assert.Equal(t, 25, *spirits[0].Charisma)
-	assert.Equal(t, 30, *spirits[0].Endurance)
-	assert.Equal(t, 180, *spirits[0].Height)
-	assert.Equal(t, 75, *spirits[0].Weight)
-	assert.Equal(t, 40, *spirits[0].Intimidation)
-	assert.Equal(t, 45, *spirits[0].Luck)
-	assert.Equal(t, 50, *spirits[0].Strength)
-	assert.Equal(t, 55, *spirits[0].Toughness)
+
+	expectedID := "spirit1"
+	expectedName := "Test Spirit"
+	expectedDesc := "Test Description"
+	expectedPrimary := "Type1"
+	expectedSecondary := "Type2"
+	expectedOrigURL := "http://original-url"
+	expectedGenURL := "http://generated-url"
+	expectedAgility := 10
+	expectedArcana := 15
+	expectedAura := 20
+	expectedCharisma := 25
+	expectedEndurance := 30
+	expectedHeight := 180
+	expectedWeight := 75
+	expectedIntimidation := 40
+	expectedLuck := 45
+	expectedStrength := 50
+	expectedToughness := 55
+
+	assert.Equal(t, &expectedID, spirits[0].ID)
+	assert.Equal(t, &expectedName, spirits[0].Name)
+	assert.Equal(t, &expectedDesc, spirits[0].Description)
+	assert.Equal(t, &expectedPrimary, spirits[0].PrimaryType)
+	assert.Equal(t, &expectedSecondary, spirits[0].SecondaryType)
+	assert.Equal(t, &expectedOrigURL, spirits[0].OriginalImageURL)
+	assert.Equal(t, &expectedGenURL, spirits[0].GeneratedImageURL)
+	assert.Equal(t, &expectedAgility, spirits[0].Agility)
+	assert.Equal(t, &expectedArcana, spirits[0].Arcana)
+	assert.Equal(t, &expectedAura, spirits[0].Aura)
+	assert.Equal(t, &expectedCharisma, spirits[0].Charisma)
+	assert.Equal(t, &expectedEndurance, spirits[0].Endurance)
+	assert.Equal(t, &expectedHeight, spirits[0].Height)
+	assert.Equal(t, &expectedWeight, spirits[0].Weight)
+	assert.Equal(t, &expectedIntimidation, spirits[0].Intimidation)
+	assert.Equal(t, &expectedLuck, spirits[0].Luck)
+	assert.Equal(t, &expectedStrength, spirits[0].Strength)
+	assert.Equal(t, &expectedToughness, spirits[0].Toughness)
 
 	mockDatastore.AssertExpectations(t)
 	mockStorage.AssertExpectations(t)
@@ -152,13 +172,13 @@ func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, spirits, 1)
-	assert.Equal(t, "", spirits[0].ID)
-	assert.Equal(t, "", spirits[0].Name)
-	assert.Equal(t, "", spirits[0].Description)
-	assert.Equal(t, "", spirits[0].PrimaryType)
-	assert.Equal(t, "", spirits[0].SecondaryType)
-	assert.Equal(t, "", spirits[0].OriginalImageURL)
-	assert.Equal(t, "", spirits[0].GeneratedImageURL)
+	assert.Nil(t, spirits[0].ID)
+	assert.Nil(t, spirits[0].Name)
+	assert.Nil(t, spirits[0].Description)
+	assert.Nil(t, spirits[0].PrimaryType)
+	assert.Nil(t, spirits[0].SecondaryType)
+	assert.Nil(t, spirits[0].OriginalImageURL)
+	assert.Nil(t, spirits[0].GeneratedImageURL)
 	assert.Nil(t, spirits[0].Agility)
 	assert.Nil(t, spirits[0].Arcana)
 	assert.Nil(t, spirits[0].Aura)
