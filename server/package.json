@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-native-tab-view": "^4.0.5"
+  }
+}
