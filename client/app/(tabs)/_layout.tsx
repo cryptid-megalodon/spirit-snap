@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
 
 export default function TabLayout() {
@@ -29,6 +30,13 @@ export default function TabLayout() {
         options={{
           title: 'Teams',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="star" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="battles"
+        options={{
+          title: 'Battles',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons size={28} name="sword-cross" color={color} />,
         }}
       />
     </Tabs>
