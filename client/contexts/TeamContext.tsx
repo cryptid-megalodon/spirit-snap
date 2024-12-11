@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Team } from '../models/Team';
-import { Spirit } from '../models/Spirit';
 
 type TeamsContextType = {
   addOrUpdateTeam: (team: Team) => Promise<void>;
@@ -25,7 +24,7 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
     const storedTeams = await AsyncStorage.getItem('teams');
     if (storedTeams) {
       const teamsArray = JSON.parse(storedTeams);
-      const teamsMap = new Map(teamsArray.map((team: Team) => [team.id, team]));
+      const teamsMap = new Map<string, Team>(teamsArray.map((team: Team) => [team.id, team]));
       setTeams(teamsMap);
     }
   };
