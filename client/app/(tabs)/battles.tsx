@@ -15,27 +15,28 @@ export default function BattlesScreen() {
     router.push('/login');
     return null;
   }
-  const { battles, newBattle } = useBattle();
+  const { getBattles, newBattle } = useBattle();
   const layout = useWindowDimensions();
 
   const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: 'battles', title: 'Battles' },
   ]);
+  const battles = Array.from(getBattles().entries());
 
   const BattlesTab = () => (
     <View style={styles.container}>
-      {battles.map((battle) => (
+      {battles.map(([battleId, battle]) => (
         <Link
-          key={battle.id}
+          key={battleId}
           href={{
             pathname: "/battle/[battleId]",
-            params: { battleId: battle.id }
+            params: { battleId: battleId }
           }}
           asChild
         >
           <Pressable style={styles.battleItem}>
-            <Text>Battle #{battle.id}</Text>
+            <Text>Battle #{battleId}</Text>
           </Pressable>
         </Link>
       ))}

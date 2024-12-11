@@ -13,13 +13,14 @@ interface Battle {
 }
 
 interface BattleContextType {
-  battles: Battle[];
   currentBattle?: Battle;
   setTeam: (battleId: string, userTeam: Team) => void;
   submitAction: (battleId: string, action: BattleAction) => void;
   joinBattle: (battleId: string) => void;
   leaveBattle: (battleId: string) => void;
   newBattle: (userId: string, opponentId: string) => string;
+  getBattle: (battleId: string) => Battle | undefined;
+  getBattles: () => Map<string, Battle>;
 }
 
 interface BattleAction {
@@ -39,8 +40,16 @@ export function useBattle() {
 }
 
 export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [battles, setBattles] = useState<Battle[]>([]);
+  const [battles, setBattles] = useState<Map<string, Battle>>(new Map());
   const [currentBattle, setCurrentBattle] = useState<Battle>();
+
+  const getBattle = useCallback((battleId: string) => {
+    return battles.get(battleId);
+  }, [battles]);
+
+  const getBattles = useCallback(() => {
+    return battles;
+  }, [battles]);
 
   const newBattle = useCallback((userId: string, opponentId: string): string => {
     const battleId = uuidv4();
@@ -53,47 +62,42 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       currentTurn: userId,
     };
     
-    setBattles(prev => [...prev, newBattle]);
+    setBattles(prev => new Map(prev).set(battleId, newBattle));
     return battleId;
   }, []);
 
   const setTeam = useCallback((battleId: string, userTeam: Team) => {
     setBattles(prev => {
-      const battleIndex = prev.findIndex(battle => battle.id === battleId);
-      if (battleIndex === -1) {
+      const battle = prev.get(battleId);
+      if (!battle) {
         throw new Error(`Battle with id ${battleId} not found`);
       }
-      const updatedBattles = [...prev];
-      updatedBattles[battleIndex] = {
-        ...updatedBattles[battleIndex],
+      return new Map(prev).set(battleId, {
+        ...battle,
         userTeam,
-      };
-      return updatedBattles;
+      });
     });
   }, []);
 
   const submitAction = useCallback((battleId: string, action: BattleAction) => {
     setBattles(prev => {
-      const battleIndex = prev.findIndex(battle => battle.id === battleId);
-      if (battleIndex === -1) return prev;
+      const battle = prev.get(battleId);
+      if (!battle) return prev;
 
-      const battle = prev[battleIndex];
       // Process battle action and update spirits' states
       // This is where you would implement battle mechanics
 
-      const updatedBattles = [...prev];
-      updatedBattles[battleIndex] = {
+      return new Map(prev).set(battleId, {
         ...battle,
         currentTurn: battle.currentTurn === battle.userId 
           ? battle.oppponentId 
           : battle.userId
-      };
-      return updatedBattles;
+      });
     });
   }, []);
 
   const joinBattle = useCallback((battleId: string) => {
-    const battle = battles.find(b => b.id === battleId);
+    const battle = battles.get(battleId);
     if (battle) {
       setCurrentBattle(battle);
     }
@@ -105,13 +109,14 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return (
     <BattleContext.Provider value={{
-      battles,
       currentBattle,
       setTeam,
       submitAction,
       joinBattle,
       leaveBattle,
-      newBattle
+      newBattle,
+      getBattle,
+      getBattles
     }}>
       {children}
     </BattleContext.Provider>
