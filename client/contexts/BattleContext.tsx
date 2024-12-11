@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Team } from '../models/Team';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -43,6 +44,30 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [battles, setBattles] = useState<Map<string, Battle>>(new Map());
   const [currentBattle, setCurrentBattle] = useState<Battle>();
 
+  useEffect(() => {
+    const loadBattles = async () => {
+      try {
+        const savedBattles = await AsyncStorage.getItem('battles');
+        if (savedBattles) {
+          const battlesArray = JSON.parse(savedBattles);
+          setBattles(new Map(battlesArray));
+        }
+      } catch (error) {
+        console.error('Error loading battles:', error);
+      }
+    };
+    loadBattles();
+  }, []);
+
+  const saveBattles = async (battlesMap: Map<string, Battle>) => {
+    try {
+      const battlesArray = Array.from(battlesMap.entries());
+      await AsyncStorage.setItem('battles', JSON.stringify(battlesArray));
+    } catch (error) {
+      console.error('Error saving battles:', error);
+    }
+  };
+
   const getBattle = useCallback((battleId: string) => {
     return battles.get(battleId);
   }, [battles]);
@@ -62,7 +87,11 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       currentTurn: userId,
     };
     
-    setBattles(prev => new Map(prev).set(battleId, newBattle));
+    setBattles(prev => {
+      const updated = new Map(prev).set(battleId, newBattle);
+      saveBattles(updated);
+      return updated;
+    });
     return battleId;
   }, []);
 
@@ -72,10 +101,12 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (!battle) {
         throw new Error(`Battle with id ${battleId} not found`);
       }
-      return new Map(prev).set(battleId, {
+      const updated = new Map(prev).set(battleId, {
         ...battle,
         userTeam,
       });
+      saveBattles(updated);
+      return updated;
     });
   }, []);
 
@@ -87,12 +118,14 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Process battle action and update spirits' states
       // This is where you would implement battle mechanics
 
-      return new Map(prev).set(battleId, {
+      const updated = new Map(prev).set(battleId, {
         ...battle,
         currentTurn: battle.currentTurn === battle.userId 
           ? battle.oppponentId 
           : battle.userId
       });
+      saveBattles(updated);
+      return updated;
     });
   }, []);
 
