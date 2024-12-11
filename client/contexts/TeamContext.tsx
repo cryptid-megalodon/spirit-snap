@@ -12,6 +12,14 @@ type TeamsContextType = {
 
 const TeamsContext = createContext<TeamsContextType | undefined>(undefined);
 
+export function useTeams() {
+  const context = useContext(TeamsContext);
+  if (!context) {
+    throw new Error('useTeams must be used within a TeamsProvider');
+  }
+  return context;
+}
+
 export function TeamsProvider({ children }: { children: React.ReactNode }) {
   const [teams, setTeams] = useState<Map<string, Team>>(new Map());
   const [editTeamId, setEditTeamId] = useState<string | null>(null);
@@ -75,12 +83,4 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
       {children}
     </TeamsContext.Provider>
   );
-}
-
-export function useTeams() {
-  const context = useContext(TeamsContext);
-  if (!context) {
-    throw new Error('useTeams must be used within a TeamsProvider');
-  }
-  return context;
 }
