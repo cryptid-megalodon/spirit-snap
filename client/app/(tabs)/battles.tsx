@@ -1,5 +1,5 @@
 
-import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { View, StyleSheet, Pressable, Text, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useBattle } from '../../contexts/BattleContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -69,9 +69,9 @@ export default function BattlesScreen() {
           />
         )}
       />
-      <Pressable style={styles.createButton} onPress={handleCreateBattle}>
+      <TouchableOpacity style={styles.createButton} onPress={handleCreateBattle}>
         <Text style={styles.buttonText}>Create Battle</Text>
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }
