@@ -65,10 +65,6 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
   };
 
   const setEditTeam = (teamId: string | null) => {
-    if (teamId === null) {
-      setEditTeamId(null);
-      return;
-    }
     setEditTeamId(teamId);
   };
 
