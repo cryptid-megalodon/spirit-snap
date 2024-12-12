@@ -8,6 +8,7 @@ type TeamsContextType = {
   getTeams: () => Team[];
   setEditTeam: (teamId: string | null) => void;
   getEditTeam: () => Team;
+  deleteTeam: (teamId: string) => Promise<void>;
 };
 
 const TeamsContext = createContext<TeamsContextType | undefined>(undefined);
@@ -46,6 +47,15 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem('teams', JSON.stringify(teamsArray));
   };
 
+  const deleteTeam = async (teamId: string) => {
+    const updatedTeams = new Map(teams);
+    updatedTeams.delete(teamId);
+    setTeams(updatedTeams);
+
+    const teamsArray = Array.from(updatedTeams.values());
+    await AsyncStorage.setItem('teams', JSON.stringify(teamsArray));
+  };
+
   const getTeam = (teamId: string) => {
     return teams.get(teamId);
   };
@@ -79,7 +89,7 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <TeamsContext.Provider value={{ addOrUpdateTeam, getTeam, getTeams, setEditTeam, getEditTeam }}>
+    <TeamsContext.Provider value={{ addOrUpdateTeam, getTeam, getTeams, setEditTeam, getEditTeam, deleteTeam }}>
       {children}
     </TeamsContext.Provider>
   );
