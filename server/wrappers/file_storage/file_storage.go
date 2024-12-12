@@ -82,7 +82,7 @@ func (c *Client) GetDownloadURL(ctx context.Context, bucketName string, filePath
 	opts := &gcs.SignedURLOptions{
 		Scheme:  gcs.SigningSchemeV4,
 		Method:  "GET",
-		Expires: time.Now().Add(1 * time.Hour), // Set the expiration time for the URL
+		Expires: time.Now().Add(7 * 24 * time.Hour), // Set the expiration time for the URL
 	}
 	url, err := bucket.SignedURL(filePath, opts)
 	if err != nil {
