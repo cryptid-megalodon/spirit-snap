@@ -13,7 +13,7 @@ const Signup = () => {
   const handleRegister = async () => {
     try {
       await registerWithEmail(email, password);
-      router.replace('/collection'); // Redirect to the Capture tab
+      router.replace('/'); // Redirect to the Capture tab
 
     } catch (error) {
       console.error('Error registering:', error);

@@ -1,9 +1,12 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
+import { View, StyleSheet} from 'react-native';
+import UserIcon from '../../components/UserIcon';
 
 export default function TabLayout() {
   return (
+    <View style={styles.container}>
     <Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }}>
       <Tabs.Screen
         name="index"
@@ -40,5 +43,20 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    <UserIcon />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+  userIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10, // Ensure it appears above the tabs
+  },
+});

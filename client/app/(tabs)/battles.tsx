@@ -11,8 +11,6 @@ export default function BattlesScreen() {
   const router = useRouter();
   const { user } = useAuth();
   if (!user) {
-    // Must be logged in to see battles.
-    router.push('/login');
     return null;
   }
   const { getBattles, newBattle } = useBattle();

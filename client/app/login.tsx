@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { auth } from '../firebase';
-import { Auth, createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signInAnonymously, signInWithEmailAndPassword } from 'firebase/auth';
+import { Auth, signInWithEmailAndPassword } from 'firebase/auth';
 
 const Login = () => {
   const router = useRouter();
@@ -13,7 +13,7 @@ const Login = () => {
     try {
       await loginWithEmail(auth, email, password);
       Alert.alert('Success', 'You are logged in!');
-      router.replace('/collection'); // Redirect to the Capture tab
+      router.replace('/'); // Redirect to the Capture tab
     } catch (error) {
       console.error('Error logging in:', error);
     }

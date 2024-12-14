@@ -4,8 +4,8 @@ import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import { initializeApp } from 'firebase/app';
 import firebase from 'firebase/app';
 import 'firebase/auth';
-import { initializeAuth, browserSessionPersistence } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 
 const firebaseConfig = {
     apiKey: process.env.EXPO_PUBLIC_API_KEY,
@@ -23,6 +23,5 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 export const auth = initializeAuth(app, {
-   persistence: browserSessionPersistence,
-   popupRedirectResolver: undefined,
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
