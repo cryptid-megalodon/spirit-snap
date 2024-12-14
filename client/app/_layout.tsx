@@ -1,16 +1,19 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Stack, useRouter, usePathname } from 'expo-router';
-import { AuthProvider, AuthContext } from '../contexts/AuthContext';
+import { AuthProvider, AuthContext } from '@/contexts/AuthContext';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { TeamsProvider } from '@/contexts/TeamContext';
 import { BattleProvider } from '@/contexts/BattleContext';
+import { ParamProvider } from '@/contexts/ParamContext';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <TeamsProvider>
         <BattleProvider>
+        <ParamProvider>
           <AuthenticatedLayout />
+        </ParamProvider>
         </BattleProvider>
       </TeamsProvider>
     </AuthProvider>

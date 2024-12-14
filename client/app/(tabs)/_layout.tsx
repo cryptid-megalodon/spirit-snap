@@ -7,7 +7,7 @@ import UserIcon from '../../components/UserIcon';
 export default function TabLayout() {
   return (
     <View style={styles.container}>
-    <Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }}>
+    <Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }} backBehavior='history'>
       <Tabs.Screen
         name="index"
         options={{
@@ -33,6 +33,12 @@ export default function TabLayout() {
         options={{
           title: 'Teams',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="star" color={color} />,
+          href: {
+            pathname: "/teams",
+            params: {
+              mode: "edit",
+            }
+          }
         }}
       />
       <Tabs.Screen

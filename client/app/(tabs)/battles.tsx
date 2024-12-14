@@ -46,9 +46,7 @@ export default function BattlesScreen() {
   });
 
   const handleCreateBattle = () => {
-    const battleId = newBattle(user.uid, "test11");
-    console.log(`Battle created: ${battleId}`);
-    router.push(`/battle/${battleId}`);
+    router.push('/battle/BattleSetup');
   };
 
   return (
