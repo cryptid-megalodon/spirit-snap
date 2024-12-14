@@ -51,6 +51,12 @@
         "projectId": "54448ee5-0431-4c25-aaee-40c1151e31ee"
       }
     },
-    "owner": "murky-blue"
+    "owner": "murky-blue",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/54448ee5-0431-4c25-aaee-40c1151e31ee"
+    }
   }
 }

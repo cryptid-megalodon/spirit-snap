@@ -1,56 +1,52 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Auth, createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signInAnonymously, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
+import { Auth, createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signInAnonymously, signInWithEmailAndPassword } from 'firebase/auth';
 
-export default function LoginScreen() {
+const Login = () => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter();
 
   const handleLogin = async () => {
     try {
       await loginWithEmail(auth, email, password);
-      router.back(); // Navigate back to the previous screen
+      Alert.alert('Success', 'You are logged in!');
+      router.replace('/collection'); // Redirect to the Capture tab
     } catch (error) {
       console.error('Error logging in:', error);
     }
   };
 
-  const handleRegister = async () => {
+  async function loginWithEmail(auth: Auth, email: string, password: string) {
     try {
-      await registerWithEmail(email, password);
-      router.back(); // Navigate back to the previous screen
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('User logged in:', userCredential.user);
+      return userCredential.user;
     } catch (error) {
-      console.error('Error registering:', error);
+      console.error('Error logging in:', error);
     }
-  };
+  }
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Welcome Back</Text>
       <TextInput
+        style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
-        autoCapitalize='none'
         keyboardType="email-address"
-        style={styles.input}
       />
       <TextInput
+        style={styles.input}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        autoCapitalize='none'
-        style={styles.input}
       />
-      <View style={styles.button}>
-        <Button title="Login" onPress={handleLogin} />
-      </View>
-      <View style={styles.button}>
-        <Button title="Sign Up" onPress={handleRegister} />
-      </View>
+      <Button title="Log in" onPress={handleLogin} />
     </View>
   );
 };
@@ -60,52 +56,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
   },
   input: {
+    width: '80%',
     borderWidth: 1,
-    borderColor: '#ccc',
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 15,
     borderRadius: 5,
-    width: '90%', // Explicit width to prevent shrinking
-    fontSize: 16, // Optional: Ensure consistent text size
-  },
-  button: {
-    padding: 10,
-    borderRadius: 5,
-    width: '90%',
   },
 });
 
-export const screenOptions = {
-  headerShown: false, // Completely hides the header
-};
-
-export async function registerWithEmail(email: string, password: string) {
-  try {
-    const credential = EmailAuthProvider.credential(email, password);
-
-    if (auth.currentUser?.isAnonymous) {
-      // Link anonymous account to the new email/password account
-      const userCredential = await linkWithCredential(auth.currentUser, credential);
-      console.log('Anonymous account upgraded to:', userCredential.user.email);
-    } else { 
-      // Create a new account directly
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('User registered with email:', userCredential.user.email);
-    }
-  } catch (error) {
-    console.error('Error registering user:', error);
-  }
-}
-
-export async function loginWithEmail(auth: Auth, email: string, password: string) {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log('User logged in:', userCredential.user);
-    return userCredential.user;
-  } catch (error) {
-    console.error('Error logging in:', error);
-  }
-}
+export default Login;

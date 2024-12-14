@@ -2,7 +2,9 @@
 import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import { initializeAuth, browserSessionPersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
@@ -21,5 +23,6 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 export const auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage) // Persist auth state across app open/close.
+   persistence: browserSessionPersistence,
+   popupRedirectResolver: undefined,
 });
