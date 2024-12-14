@@ -93,7 +93,7 @@ export default function CollectionScreen() {
         <FlatList
           data={spirits}
           renderItem={renderSpirit}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id || ''}
           numColumns={3}
           style={styles.list}
         />
