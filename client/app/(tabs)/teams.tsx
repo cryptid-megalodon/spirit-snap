@@ -1,20 +1,39 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native'
-import { Link, useNavigation } from 'expo-router'
-import { Team } from '../../models/Team'
+import { useState } from 'react'
+import { useNavigation, useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router'
+import { Team } from '@/models/Team'
 import { Ionicons } from '@expo/vector-icons'
 import { useTeams } from '@/contexts/TeamContext'
+import { useParams } from '@/contexts/ParamContext'
 import { NavigationProp } from '@react-navigation/native'
-import { RootStackParamList } from '../../navigation/types'
+import { RootStackParamList } from '@/navigation/types'
 import SpiritCard from '@/app/SpiritCard'
-import { useState } from 'react'
 
 
 export default function TeamsScreen() {
   const navigator = useNavigation<NavigationProp<RootStackParamList>>()
   const { getTeams, setEditTeam, deleteTeam } = useTeams()
+  const { setParamValue } = useParams()
   const [selectedSpirit, setSelectedSpirit] = useState<Team['spirits'][number] | null>(null)
+  const { mode, teamRef } = useLocalSearchParams()
+  const [ selectMode, setSelectMode ] = useState(mode === 'select')
+  const router = useRouter()
 
-  console.log('getTeams:', getTeams())
+  useFocusEffect(() => {
+    if (mode === 'select') {
+      setSelectMode(true)
+    } else {
+      setSelectMode(false)
+    }
+  })
+
+  const handleTeamSelection = (team: Team) => {
+    return () => {
+      setParamValue(team.id)
+      router.back()
+    }
+  }
+
   const renderTeamSpirits = (spirits: Team['spirits']) => {
     return (
       <View style={styles.spiritsContainer}>
@@ -48,21 +67,33 @@ export default function TeamsScreen() {
         <View style={styles.teamHeader}>
           <Text style={styles.teamName}>{item.name || 'Unnamed Team'}</Text>
           <View style={styles.teamActions}>
-            <TouchableOpacity
-              onPress={() => {
-                setEditTeam(item.id);
-                navigator.navigate('collection', { openTeamEditor: true });
-              }}
-              style={styles.iconButton}
-            >
-              <Ionicons name="pencil" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => deleteTeam(item.id)}
-              style={styles.iconButton}
-            >
-              <Ionicons name="trash" size={24} color="red" />
-            </TouchableOpacity>
+            {!selectMode && (
+              <>
+                <TouchableOpacity
+                  onPress={() => {
+                    setEditTeam(item.id);
+                    navigator.navigate('collection', { openTeamEditor: true });
+                  }}
+                  style={styles.iconButton}
+                >
+                  <Ionicons name="pencil" size={24} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => deleteTeam(item.id)}
+                  style={styles.iconButton}
+                >
+                  <Ionicons name="trash" size={24} color="red" />
+                </TouchableOpacity>
+              </>
+            )}
+            {selectMode && (
+              <TouchableOpacity
+                onPress={handleTeamSelection(item)}
+                style={styles.iconButton}
+              >
+                <Ionicons name="checkmark-circle" size={24} color="green" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
         {renderTeamSpirits(item.spirits)}
@@ -79,16 +110,17 @@ export default function TeamsScreen() {
         style={styles.list}
       />
       
-      <TouchableOpacity
-        style={styles.newTeamButton}
-        onPress={() => {
-          setEditTeam(null);
-          navigator.navigate('collection', { openTeamEditor: true });
-        }
-      }
-      >
-        <Text style={styles.buttonText}>Create New Team</Text>
-      </TouchableOpacity>
+      {!selectMode && (
+        <TouchableOpacity
+          style={styles.newTeamButton}
+          onPress={() => {
+            setEditTeam(null);
+            navigator.navigate('collection', { openTeamEditor: true });
+          }}
+        >
+          <Text style={styles.buttonText}>Create New Team</Text>
+        </TouchableOpacity>
+      )}
 
       {selectedSpirit && (
         <SpiritCard
