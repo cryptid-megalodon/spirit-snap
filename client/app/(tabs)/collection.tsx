@@ -401,6 +401,10 @@ async function fetchSpirits(user: User): Promise<Spirit[]> {
       },
     });
     const spiritsData = response.data as Spirit[];
+    if (!spiritsData) {
+      console.log('No spirits found.');
+      return [];
+    }
     var filtered_spirits = spiritsData.filter(
       (spirit) =>
         spirit.id !== null &&
