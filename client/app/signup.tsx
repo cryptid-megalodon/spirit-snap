@@ -4,38 +4,58 @@ import { useRouter } from 'expo-router';
 import { Auth, createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from 'firebase/auth';
 import { auth } from '../firebase';
 
+const DEFAULT_ERROR_MESSAGE = 'Invalid credentials.';
 
 const Signup = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorState, setErrorState] = useState('');
 
   const handleRegister = async () => {
     try {
-      await registerWithEmail(email, password);
-      router.replace('/'); // Redirect to the Capture tab
+      // Clear any previous error state
+      setErrorState('');
 
-    } catch (error) {
-      console.error('Error registering:', error);
-    }
-  };
-
-  async function registerWithEmail(email: string, password: string) {
-    try {
       const credential = EmailAuthProvider.credential(email, password);
-  
       if (auth.currentUser?.isAnonymous) {
         // Link anonymous account to the new email/password account
         const userCredential = await linkWithCredential(auth.currentUser, credential);
         console.log('Anonymous account upgraded to:', userCredential.user.email);
-      } else { 
+      } else {
         // Create a new account directly
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         console.log('User registered with email:', userCredential.user.email);
       }
-    } catch (error) {
-      console.error('Error registering user:', error);
+      router.replace('/'); // Redirect to the Capture tab
+
+    } catch (error: unknown) {
+      if (isFirebaseError(error)) {
+        const userFriendlyMessage = mapFirebaseErrorToMessage(error.code);
+        setErrorState(userFriendlyMessage);
+      } else {
+        setErrorState(DEFAULT_ERROR_MESSAGE);
+      }
+      console.log('Error registering:', error);
     }
+  };
+  // Map Firebase error codes to user-friendly messages
+  const mapFirebaseErrorToMessage = (errorCode: string): string => {
+    switch (errorCode) {
+      case 'auth/weak-password':
+        return 'Password should be at least 6 characters.';
+      default:
+        return DEFAULT_ERROR_MESSAGE;
+    }
+  };
+
+  function isFirebaseError(error: unknown): error is { code: string; message: string } {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      'message' in error
+    );
   }
 
   return (
@@ -58,6 +78,7 @@ const Signup = () => {
           secureTextEntry
           autoCapitalize="none"
         />
+        {errorState ? <Text style={styles.errorText}>{errorState}</Text> : null}
         <Button title="Sign up" onPress={handleRegister} />
       </View>
     </TouchableWithoutFeedback>
@@ -80,6 +101,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     borderRadius: 5,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 
