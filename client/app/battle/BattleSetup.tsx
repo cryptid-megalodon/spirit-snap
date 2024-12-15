@@ -15,8 +15,8 @@ export default function BattleSetupScreen() {
   const { newBattle } = useBattle();
   const { getTeam } = useTeams();
   const { setParamKey, getParamValue, clearParam } = useParams();
-  const [playerTeam, setPlayerTeam] = useState<Team | null>(null);
-  const [opponentTeam, setOpponentTeam] = useState<Team | null>(null);
+  const [playerOneTeam, setPlayerOneTeam] = useState<Team | null>(null);
+  const [playerTwoTeam, setPlayerTwoTeam] = useState<Team | null>(null);
   const [selectedSpirit, setSelectedSpirit] = useState<Spirit | null>(null);
 
   if (!user) {
@@ -25,35 +25,35 @@ export default function BattleSetupScreen() {
   }
 
   useFocusEffect(() => {
-    const player_team_id = getParamValue('playerTeamId');
-    if (player_team_id) {
-      const team = getTeam(player_team_id);
+    const player_one_team_id = getParamValue('playerOneTeamId');
+    if (player_one_team_id) {
+      const team = getTeam(player_one_team_id);
       if (team) {
-        setPlayerTeam(team);
+        setPlayerOneTeam(team);
       }
     }
     const opponent_team_id = getParamValue('opponentTeamId');
     if (opponent_team_id) {
       const team = getTeam(opponent_team_id);
       if (team) {
-        setOpponentTeam(team);
+        setPlayerTwoTeam(team);
       }
     }
   });
 
   const handleStartBattle = () => {
-    if (!playerTeam || !opponentTeam) {
+    if (!playerOneTeam || !playerTwoTeam) {
       return;
     }
-    const battleId = newBattle(user.uid, "test");
+    const battleId = newBattle(user.uid, "playerTwoUserId", playerOneTeam.id, playerTwoTeam.id);
     cleanUpState();
     console.log(`Battle created: ${battleId}`);
     router.replace(`/battle/${battleId}`);
   };
 
   const cleanUpState = () => {
-    setPlayerTeam(null);
-    setOpponentTeam(null);
+    setPlayerOneTeam(null);
+    setPlayerTwoTeam(null);
     clearParam('playerTeamId');
     clearParam('opponentTeamId');
   }
@@ -118,8 +118,8 @@ export default function BattleSetupScreen() {
     <View style={styles.container}>
       <View style={styles.teamSection}>
         <Text style={styles.sectionTitle}>Your Team</Text>
-        {playerTeam ? (
-          renderTeam(playerTeam)
+        {playerOneTeam ? (
+          renderTeam(playerOneTeam)
         ) : (
           <Text style={styles.placeholderText}>Please select a team</Text>
         )}
@@ -130,8 +130,8 @@ export default function BattleSetupScreen() {
 
       <View style={styles.teamSection}>
         <Text style={styles.sectionTitle}>Opponent Team</Text>
-        {opponentTeam ? (
-          renderTeam(opponentTeam)
+        {playerTwoTeam ? (
+          renderTeam(playerTwoTeam)
         ) : (
           <Text style={styles.placeholderText}>Please select a team</Text>
         )}
@@ -141,9 +141,9 @@ export default function BattleSetupScreen() {
       </View>
 
       <TouchableOpacity 
-        style={[styles.createButton, (!playerTeam || !opponentTeam) && styles.disabledButton]} 
+        style={[styles.createButton, (!playerOneTeam || !playerTwoTeam) && styles.disabledButton]} 
         onPress={handleStartBattle}
-        disabled={!playerTeam || !opponentTeam}
+        disabled={!playerOneTeam || !playerTwoTeam}
       >
         <Text style={styles.buttonText}>Start Battle</Text>
       </TouchableOpacity>

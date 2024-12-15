@@ -1,25 +1,16 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { Team } from '../models/Team';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { Battle } from '@/models/Battle';
 
-interface Battle {
-  id: string;
-  userId: string;
-  oppponentId: string;
-  userTeam: Team | null;
-  opponentTeam: Team | null;
-  currentTurn: string;
-}
 
 interface BattleContextType {
   currentBattle?: Battle;
-  setTeam: (battleId: string, userTeam: Team) => void;
   submitAction: (battleId: string, action: BattleAction) => void;
   joinBattle: (battleId: string) => void;
   leaveBattle: (battleId: string) => void;
-  newBattle: (userId: string, opponentId: string) => string;
+  newBattle: (playerOneUserId: string, playerTwoUserId: string, playerOneTeamId: string, playerTwoTeamId: string) => string;
   getBattle: (battleId: string) => Battle | undefined;
   getBattles: () => Map<string, Battle>;
 }
@@ -76,15 +67,15 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return battles;
   }, [battles]);
 
-  const newBattle = useCallback((userId: string, opponentId: string): string => {
+  const newBattle = useCallback((playerOneUserId: string, playerTwoUserId: string, playerOneTeamId: string, playerTwoTeamId: string): string => {
     const battleId = uuidv4();
     const newBattle: Battle = {
       id: battleId,
-      userId: userId,
-      oppponentId: opponentId,
-      userTeam: null,
-      opponentTeam: null,
-      currentTurn: userId,
+      playerOneUserId,
+      playerTwoUserId,
+      playerOneTeamId,
+      playerTwoTeamId,
+      currentTurnUserId: null,
     };
     
     setBattles(prev => {
@@ -93,21 +84,6 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return updated;
     });
     return battleId;
-  }, []);
-
-  const setTeam = useCallback((battleId: string, userTeam: Team) => {
-    setBattles(prev => {
-      const battle = prev.get(battleId);
-      if (!battle) {
-        throw new Error(`Battle with id ${battleId} not found`);
-      }
-      const updated = new Map(prev).set(battleId, {
-        ...battle,
-        userTeam,
-      });
-      saveBattles(updated);
-      return updated;
-    });
   }, []);
 
   const submitAction = useCallback((battleId: string, action: BattleAction) => {
@@ -120,9 +96,10 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       const updated = new Map(prev).set(battleId, {
         ...battle,
-        currentTurn: battle.currentTurn === battle.userId 
-          ? battle.oppponentId 
-          : battle.userId
+        currentTurnUserId: (battle.currentTurnUserId === battle.playerOneUserId)
+        // Let next turn be the other player.
+          ? battle.playerTwoUserId 
+          : battle.playerOneUserId,
       });
       saveBattles(updated);
       return updated;
@@ -143,7 +120,6 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <BattleContext.Provider value={{
       currentBattle,
-      setTeam,
       submitAction,
       joinBattle,
       leaveBattle,
