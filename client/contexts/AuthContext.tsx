@@ -10,7 +10,7 @@ interface AuthContextProps {
   logout: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextProps>({
+const AuthContext = createContext<AuthContextProps>({
   user: null,
   loading: true,
   logout: async () => {},

@@ -38,6 +38,7 @@ const Login = () => {
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        autoCapitalize='none'
       />
       <TextInput
         style={styles.input}
@@ -45,6 +46,7 @@ const Login = () => {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        autoCapitalize='none'
       />
       <Button title="Log in" onPress={handleLogin} />
     </View>

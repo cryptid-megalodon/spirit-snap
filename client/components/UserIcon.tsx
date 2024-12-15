@@ -59,14 +59,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  anonymousIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'gray',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   iconText: {
     color: 'white',
     fontSize: 18,
