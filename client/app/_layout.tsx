@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect } from 'react';
 import { Stack, useRouter, usePathname } from 'expo-router';
-import { AuthProvider, AuthContext } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { TeamsProvider } from '@/contexts/TeamContext';
 import { BattleProvider } from '@/contexts/BattleContext';
@@ -21,16 +21,14 @@ export default function RootLayout() {
 }
 
 function AuthenticatedLayout() {
-  const { user, loading } = useContext(AuthContext); // Access auth state
+  const { user, loading } = useAuth(); // Access auth state
   const router = useRouter();
-  const pathname = usePathname(); // Get the current route path
 
   useEffect(() => {
-    console.log("pathname ", pathname);
     if (!loading) {
       if (!user) {
         // Redirect to the Get Started page if not authenticated
-        router.replace('./getstarted');
+        router.replace('/getstarted');
       }
     }
   }, [user, loading]);

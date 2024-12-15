@@ -47,6 +47,7 @@ const Signup = () => {
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
@@ -54,6 +55,7 @@ const Signup = () => {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        autoCapitalize="none"
       />
       <Button title="Sign up" onPress={handleRegister} />
     </View>
