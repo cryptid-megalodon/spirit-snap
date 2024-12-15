@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useRouter } from 'expo-router';
 import { auth } from '../firebase';
 import { Auth, signInWithEmailAndPassword } from 'firebase/auth';
@@ -8,28 +8,23 @@ const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorState, setErrorState] = useState('');
 
   const handleLogin = async () => {
     try {
-      await loginWithEmail(auth, email, password);
-      Alert.alert('Success', 'You are logged in!');
-      router.replace('/'); // Redirect to the Capture tab
-    } catch (error) {
-      console.error('Error logging in:', error);
-    }
-  };
-
-  async function loginWithEmail(auth: Auth, email: string, password: string) {
-    try {
+      // Clear any previous error state
+      setErrorState('');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('User logged in:', userCredential.user);
-      return userCredential.user;
+      router.replace('/'); // Redirect to the Capture tab
     } catch (error) {
-      console.error('Error logging in:', error);
-    }
+      setErrorState("The email address or password is invalid.");
+      console.log('Error logging in:', error);
+    };
   }
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back</Text>
       <TextInput
@@ -48,8 +43,10 @@ const Login = () => {
         secureTextEntry
         autoCapitalize='none'
       />
+      {errorState ? <Text style={styles.errorText}>{errorState}</Text> : null}
       <Button title="Log in" onPress={handleLogin} />
     </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -69,6 +66,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     borderRadius: 5,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 
