@@ -1,9 +1,9 @@
 // firebase.ts
-import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import { initializeApp } from 'firebase/app';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
     apiKey: process.env.EXPO_PUBLIC_API_KEY,
@@ -21,5 +21,5 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 export const auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage) // Persist auth state across app open/close.
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });

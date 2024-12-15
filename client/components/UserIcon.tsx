@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Image, TouchableOpacity, Modal, Text, StyleSheet, Button } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'expo-router';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 export default function UserIcon() {
   const { user, logout } = useAuth();
@@ -10,7 +11,7 @@ export default function UserIcon() {
 
   const handlePress = () => {
     if (!user || user.isAnonymous) {
-      router.push('/login');
+      router.push('/getstarted');
     } else {
       setMenuVisible(true); // Show user menu for logged-in users
     }
@@ -19,7 +20,7 @@ export default function UserIcon() {
   const handleLogout = async () => {
     setMenuVisible(false);
     await logout();
-    router.push('/login');
+    router.push('/getstarted');
   };
 
   return (
@@ -27,11 +28,7 @@ export default function UserIcon() {
       <TouchableOpacity onPress={handlePress}>
         {user && !user.isAnonymous && user.photoURL ? (
           <Image source={{ uri: user.photoURL }} style={styles.userIcon} />
-        ) : (
-          <View style={styles.anonymousIcon}>
-            <Text style={styles.iconText}>?</Text>
-          </View>
-        )}
+        ) : <FontAwesome name="user" size={32} color="black" />}
       </TouchableOpacity>
 
       {/* User Menu */}
@@ -54,21 +51,13 @@ export default function UserIcon() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 25,
+    right: 15,
   },
   userIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-  },
-  anonymousIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'gray',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   iconText: {
     color: 'white',
