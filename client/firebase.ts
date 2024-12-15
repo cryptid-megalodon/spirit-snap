@@ -1,9 +1,7 @@
 // firebase.ts
-import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy } from 'firebase/firestore';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import { initializeApp } from 'firebase/app';
-import firebase from 'firebase/app';
-import 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 
