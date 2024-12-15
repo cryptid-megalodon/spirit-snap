@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Auth, createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -39,26 +39,28 @@ const Signup = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create an Account</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        autoCapitalize="none"
-      />
-      <Button title="Sign up" onPress={handleRegister} />
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Create an Account</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoCapitalize="none"
+        />
+        <Button title="Sign up" onPress={handleRegister} />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
