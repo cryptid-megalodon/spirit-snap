@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { Stack, useRouter, usePathname } from 'expo-router';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { SpiritProvider } from '@/contexts/SpiritContext';
 import { TeamsProvider } from '@/contexts/TeamContext';
 import { BattleProvider } from '@/contexts/BattleContext';
 import { ParamProvider } from '@/contexts/ParamContext';
@@ -9,13 +10,15 @@ import { ParamProvider } from '@/contexts/ParamContext';
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <TeamsProvider>
-        <BattleProvider>
-        <ParamProvider>
-          <AuthenticatedLayout />
-        </ParamProvider>
-        </BattleProvider>
-      </TeamsProvider>
+      <SpiritProvider>
+        <TeamsProvider>
+          <BattleProvider>
+            <ParamProvider>
+              <AuthenticatedLayout />
+            </ParamProvider>
+          </BattleProvider>
+        </TeamsProvider>
+      </SpiritProvider>
     </AuthProvider>
   );
 }

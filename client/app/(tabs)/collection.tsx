@@ -11,13 +11,12 @@ import {
   TextInput,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
-import { User } from 'firebase/auth';
 import SpiritCard from '../SpiritCard';
 import { Spirit } from '../../models/Spirit';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTeams } from '@/contexts/TeamContext';
 import { Team } from '../../models/Team';
+import { useSpiritContext } from '@/contexts/SpiritContext';
 
 export default function CollectionScreen() {
   const searchParams = useLocalSearchParams();
@@ -26,7 +25,7 @@ export default function CollectionScreen() {
   const [openSpiritCardView, setOpenSpiritCardView] = useState<boolean>(searchParams.openTeamEditor === 'false');
   const [spirits, setSpirits] = useState<Spirit[]>([]);
   const [selectedSpirit, setSelectedSpirit] = useState<Spirit | null>(null);
-  const { user } = useAuth();
+  const { getUserSpirits } = useSpiritContext();
 
   useFocusEffect(() => {
     setOpenTeamEditor(searchParams.openTeamEditor === 'true');
@@ -36,12 +35,11 @@ export default function CollectionScreen() {
   // Load spirits in collection FlatList.
   useFocusEffect(
     React.useCallback(() => {
-      if (!user) return;
       let isActive = true;
 
       const getPhotos = async () => {
         try {
-          const spirits = await fetchSpirits(user);
+          const spirits = await getUserSpirits();
           if (isActive) {
             setSpirits(spirits);
           }
@@ -382,53 +380,3 @@ const styles = StyleSheet.create({
   },
 });
 
-async function fetchSpirits(user: User): Promise<Spirit[]> {
-  const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
-  if (url == undefined) {
-    throw Error('API URL is not set.');
-  }
-  if (user == null) {
-    throw new Error('User not logged in');
-  }
-  const idToken = await user.getIdToken();
-  const endpoint = url + '/FetchSpirits';
-  console.log('FetchSpirits Endpoint:', endpoint);
-  try {
-    const response = await axios.get(endpoint, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${idToken}`,
-      },
-    });
-    const spiritsData = response.data as Spirit[];
-    if (!spiritsData) {
-      console.log('No spirits found.');
-      return [];
-    }
-    var filtered_spirits = spiritsData.filter(
-      (spirit) =>
-        spirit.id !== null &&
-        spirit.name !== null &&
-        spirit.description !== null &&
-        spirit.primaryType !== null &&
-        spirit.secondaryType !== null &&
-        spirit.originalImageDownloadUrl !== null &&
-        spirit.generatedImageDownloadUrl !== null &&
-        spirit.agility !== null &&
-        spirit.arcana !== null &&
-        spirit.aura !== null &&
-        spirit.charisma !== null &&
-        spirit.endurance !== null &&
-        spirit.height !== null &&
-        spirit.weight !== null &&
-        spirit.intimidation !== null &&
-        spirit.luck !== null &&
-        spirit.strength !== null &&
-        spirit.toughness !== null
-    );
-    return filtered_spirits;
-  } catch (error) {
-    console.error('Error fetching spirts:', error);
-    return [];
-  }
-}
