@@ -7,7 +7,7 @@ import { useTeams } from '@/contexts/TeamContext'
 import { useParams } from '@/contexts/ParamContext'
 import { NavigationProp } from '@react-navigation/native'
 import { RootStackParamList } from '@/navigation/types'
-import SpiritCard from '@/app/SpiritCard'
+import SpiritCard from '@/components/SpiritCard'
 
 
 export default function TeamsScreen() {

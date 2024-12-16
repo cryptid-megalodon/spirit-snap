@@ -10,7 +10,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import SpiritCard from '@/app/SpiritCard';
+import SpiritCard from '@/components/SpiritCard';
 import { Spirit } from '@/models/Spirit';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTeams } from '@/contexts/TeamContext';
