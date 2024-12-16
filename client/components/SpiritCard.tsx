@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { Spirit } from '../models/Spirit';
+import { Spirit } from '@/models/Spirit';
 
 interface SpiritCardProps {
   visible: boolean;
@@ -76,7 +76,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // Your existing styles
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     padding: 20,
   },
