@@ -1,22 +1,44 @@
 import { useBattle } from '@/contexts/BattleContext';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+import { useTeams } from '@/contexts/TeamContext';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect } from 'react';
 import { View, Image, Modal, StyleSheet, Dimensions, Text , Alert, Pressable, TouchableOpacity } from 'react-native';
+import { Team } from '@/models/Team';
+import { Battle } from '@/models/Battle';
 
 export default function BattleScreen() {
   const params = useLocalSearchParams();
   const battleId = params.battleId as string;
   const [modalVisible, setModalVisible] = useState(false);
-  const { currentBattleContext, setCurrentBattle } = useBattle();
+  const [playerOneTeam, setPlayerOneTeam] = useState<Team | null>(null);
+  const [playerTwoTeam, setPlayerTwoTeam] = useState<Team | null>(null);
+  const [currentBattle, setCurrentBattle] = useState<Battle | null>(null);
+  const { getBattle } = useBattle();
+  const { getTeam } = useTeams();
 
-  useFocusEffect(() => {
+  useEffect(() => {
     if (!battleId) {
       return;
     }
-    if (!currentBattleContext) {
-      setCurrentBattle(battleId);
+    console.log(`In Battle: ${battleId}`);
+    const battle = getBattle(battleId);
+    if (!battle) {
+      throw new Error('Battle not found');
     }
-  });
+    const teamOne = getTeam(battle.playerOneTeamId)
+    if (!teamOne) {
+      throw new Error('Player One Team not found');
+    }
+    const shallowCopyTeamOne = { ...teamOne };
+    setPlayerOneTeam(shallowCopyTeamOne)
+    const teamTwo = getTeam(battle.playerTwoTeamId)
+    if (!teamTwo) {
+      throw new Error('Player Two Team not found');
+    }
+    const shallowCopyTeamTwo = { ...teamTwo };
+    setPlayerTwoTeam(shallowCopyTeamTwo)
+    setCurrentBattle(battle);
+  }, []);
 
   const handleSelectMove = (move: string) => {
     console.log(`Selected move: ${move}`);
@@ -27,8 +49,8 @@ export default function BattleScreen() {
     <View style={styles.container}>
       {/* Top Row */}
       <View style={styles.topRow}>
-        <Image source={{ uri: 'https://placekitten.com/100/100' }} style={styles.portrait} />
-        <Image source={{ uri: 'https://placekitten.com/100/100' }} style={styles.portrait} />
+        <Image source={{ uri: playerTwoTeam?.spirits[1].generatedImageDownloadUrl }} style={styles.portrait} />
+        <Image source={{ uri: playerTwoTeam?.spirits[2].generatedImageDownloadUrl }} style={styles.portrait} />
       </View>
 
       {/* Middle Row */}
@@ -39,9 +61,9 @@ export default function BattleScreen() {
             </TouchableOpacity>
         </View>
         <View style={styles.middleRowFrontLine}>
-            <Image source={{ uri: 'https://placekitten.com/100/100' }} style={styles.portrait} />
+            <Image source={{ uri: playerTwoTeam?.spirits[0].generatedImageDownloadUrl }} style={styles.portrait} />
             <Pressable onPress={() => setModalVisible(true)}>
-              <Image source={{ uri: 'https://placekitten.com/100/100' }} style={styles.portrait} />
+              <Image source={{ uri: playerOneTeam?.spirits[0].generatedImageDownloadUrl }} style={styles.portrait} />
             </Pressable>
         </View>
         <View style={styles.middleRowButtonColumn}>
@@ -53,8 +75,8 @@ export default function BattleScreen() {
 
       {/* Bottom Row */}
       <View style={styles.bottomRow}>
-        <Image source={{ uri: 'https://placekitten.com/100/100' }} style={styles.portrait} />
-        <Image source={{ uri: 'https://placekitten.com/100/100' }} style={styles.portrait} />
+        <Image source={{ uri: playerOneTeam?.spirits[1].generatedImageDownloadUrl }} style={styles.portrait} />
+        <Image source={{ uri: playerOneTeam?.spirits[2].generatedImageDownloadUrl }} style={styles.portrait} />
       </View>
 
       {/* Fighting Move Modal */}
