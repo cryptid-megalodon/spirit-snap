@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 
 type SpiritContextType = {
   getSpirit: (spiritId: string) => Spirit | undefined
+  getSpirits: (spiritIds: string[]) => Spirit[] | undefined
   getUserSpirits: () => Promise<Spirit[]>
 }
 
@@ -20,7 +21,13 @@ export function useSpiritContext() {
 
 export function SpiritProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
+
   const getSpirit = (spiritId: string) => {
+    // TODO: Implement spirit fetching logic
+    return undefined
+  }
+
+  const getSpirits = (spiritIds: string[]) => {
     // TODO: Implement spirit fetching logic
     return undefined
   }
@@ -75,7 +82,7 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SpiritContext.Provider value={{ getSpirit, getUserSpirits }}>
+    <SpiritContext.Provider value={{ getSpirit, getSpirits, getUserSpirits }}>
       {children}
     </SpiritContext.Provider>
   )
