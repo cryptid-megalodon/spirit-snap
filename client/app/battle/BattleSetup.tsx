@@ -32,7 +32,7 @@ export default function BattleSetupScreen() {
         setPlayerOneTeam(team);
       }
     }
-    const opponent_team_id = getParamValue('opponentTeamId');
+    const opponent_team_id = getParamValue('playerTwoTeamId');
     if (opponent_team_id) {
       const team = getTeam(opponent_team_id);
       if (team) {
@@ -54,12 +54,12 @@ export default function BattleSetupScreen() {
   const cleanUpState = () => {
     setPlayerOneTeam(null);
     setPlayerTwoTeam(null);
-    clearParam('playerTeamId');
-    clearParam('opponentTeamId');
+    clearParam('playerOneTeamId');
+    clearParam('playerTwoTeamId');
   }
 
   const handleSelectPlayerTeam = () => {
-    setParamKey('playerTeamId');
+    setParamKey('playerOneTeamId');
     router.push({
       pathname: '/teams',
       params: { mode: 'select' }
@@ -67,7 +67,7 @@ export default function BattleSetupScreen() {
   };
 
   const handleSelectOpponentTeam = () => {
-    setParamKey('opponentTeamId');
+    setParamKey('playerTwoTeamId');
     router.push({
       pathname: '/teams',
       params: { mode: 'select' }
