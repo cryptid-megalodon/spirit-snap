@@ -6,7 +6,7 @@ import { useTeams } from '@/contexts/TeamContext';
 import { useParams } from '@/contexts/ParamContext';
 import { Team } from '@/models/Team';
 import { Spirit } from '@/models/Spirit';
-import SpiritCard from '@/app/SpiritCard';
+import SpiritCard from '@/components/SpiritCard';
 import { useState } from 'react';
 
 export default function BattleSetupScreen() {
