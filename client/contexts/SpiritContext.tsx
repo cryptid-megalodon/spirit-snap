@@ -22,14 +22,17 @@ export function useSpiritContext() {
 export function SpiritProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
 
-  const getSpirit = (spiritId: string) => {
-    // TODO: Implement spirit fetching logic
-    return undefined
+  const getSpirit = async (spiritId: string) => {
+    const spirit = await getSpirits([spiritId]);
+    if (spirit.length > 0) {
+      return spirit[0];
+    }
+    return undefined;
   }
 
-  const getSpirits = (spiritIds: string[]) => {
-    // TODO: Implement spirit fetching logic
-    return undefined
+  const getSpirits = async (spiritIds: string[]) => {
+    const spirits = await getUserSpirits();
+    return spirits.filter(spirit => spiritIds.includes(spirit.id as string));
   }
 
   async function getUserSpirits(): Promise<Spirit[]> {
