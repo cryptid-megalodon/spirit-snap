@@ -6,10 +6,9 @@ import { Battle } from '@/models/Battle';
 
 
 interface BattleContextType {
-  currentBattle?: Battle;
+  currentBattleContext?: Battle;
+  setCurrentBattle: (battleId: string) => void;
   submitAction: (battleId: string, action: BattleAction) => void;
-  joinBattle: (battleId: string) => void;
-  leaveBattle: (battleId: string) => void;
   newBattle: (playerOneUserId: string, playerTwoUserId: string, playerOneTeamId: string, playerTwoTeamId: string) => string;
   getBattle: (battleId: string) => Battle | undefined;
   getBattles: () => Map<string, Battle>;
@@ -33,7 +32,7 @@ export function useBattle() {
 
 export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [battles, setBattles] = useState<Map<string, Battle>>(new Map());
-  const [currentBattle, setCurrentBattle] = useState<Battle>();
+  const [currentBattleContext, setCurrentBattleContext] = useState<Battle>();
 
   useEffect(() => {
     const loadBattles = async () => {
@@ -106,23 +105,18 @@ export const BattleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, []);
 
-  const joinBattle = useCallback((battleId: string) => {
-    const battle = battles.get(battleId);
+  const setCurrentBattle = useCallback((battleId: string) => {
+    const battle = getBattle(battleId);
     if (battle) {
-      setCurrentBattle(battle);
+      setCurrentBattleContext(battle);
     }
-  }, [battles]);
-
-  const leaveBattle = useCallback((battleId: string) => {
-    setCurrentBattle(undefined);
-  }, []);
+  }, [getBattle]);
 
   return (
     <BattleContext.Provider value={{
-      currentBattle,
+      currentBattleContext,
+      setCurrentBattle,
       submitAction,
-      joinBattle,
-      leaveBattle,
       newBattle,
       getBattle,
       getBattles

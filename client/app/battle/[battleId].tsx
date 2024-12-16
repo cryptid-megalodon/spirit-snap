@@ -1,17 +1,22 @@
-// import { useLocalSearchParams } from 'expo-router';
-// import { Text } from 'react-native';
-
-// export default function BattleScreen() {
-//   const { battleId } = useLocalSearchParams();
-
-//   return <Text>Battle Id: {battleId}</Text>;
-// }
-
+import { useBattle } from '@/contexts/BattleContext';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Image, Button, Modal, StyleSheet, Dimensions, Text , Alert, Pressable, TouchableOpacity } from 'react-native';
+import { View, Image, Modal, StyleSheet, Dimensions, Text , Alert, Pressable, TouchableOpacity } from 'react-native';
 
-const PortraitScreen = () => {
+export default function BattleScreen() {
+  const params = useLocalSearchParams();
+  const battleId = params.battleId as string;
   const [modalVisible, setModalVisible] = useState(false);
+  const { currentBattleContext, setCurrentBattle } = useBattle();
+
+  useFocusEffect(() => {
+    if (!battleId) {
+      return;
+    }
+    if (!currentBattleContext) {
+      setCurrentBattle(battleId);
+    }
+  });
 
   const handleSelectMove = (move: string) => {
     console.log(`Selected move: ${move}`);
@@ -172,6 +177,3 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightred'
   }
 });
-
-export default PortraitScreen;
-
