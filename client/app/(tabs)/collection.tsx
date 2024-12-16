@@ -10,12 +10,11 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import SpiritCard from '../SpiritCard';
-import { Spirit } from '../../models/Spirit';
+import SpiritCard from '@/app/SpiritCard';
+import { Spirit } from '@/models/Spirit';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTeams } from '@/contexts/TeamContext';
-import { Team } from '../../models/Team';
+import { Team } from '@/models/Team';
 import { useSpiritContext } from '@/contexts/SpiritContext';
 
 export default function CollectionScreen() {
