@@ -4,8 +4,8 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 type SpiritContextType = {
-  getSpirit: (spiritId: string) => Spirit | undefined
-  getSpirits: (spiritIds: string[]) => Spirit[] | undefined
+  getSpirit: (spiritId: string) => Promise<Spirit | undefined>
+  getSpirits: (spiritIds: string[]) => Promise<Spirit[] | undefined>
   getUserSpirits: () => Promise<Spirit[]>
 }
 
@@ -24,13 +24,13 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
 
   const getSpirit = async (spiritId: string) => {
     const spirit = await getSpirits([spiritId]);
-    if (spirit.length > 0) {
+    if (spirit && spirit.length > 0) {
       return spirit[0];
     }
     return undefined;
   }
 
-  const getSpirits = async (spiritIds: string[]) => {
+  const getSpirits = async (spiritIds: string[]): Promise<Spirit[] | undefined> => {
     const spirits = await getUserSpirits();
     return spirits.filter(spirit => spiritIds.includes(spirit.id as string));
   }
