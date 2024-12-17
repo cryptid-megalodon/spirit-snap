@@ -74,6 +74,7 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
           spirit.weight !== null &&
           spirit.intimidation !== null &&
           spirit.luck !== null &&
+          spirit.hitPoints !== null &&
           spirit.strength !== null &&
           spirit.toughness !== null
       );

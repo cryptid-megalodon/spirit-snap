@@ -16,6 +16,7 @@ export interface Spirit {
     weight: number | null;
     intimidation: number | null;
     luck: number | null;
+    hitPoints: number | null;
     strength: number | null;
     toughness: number | null;
   }

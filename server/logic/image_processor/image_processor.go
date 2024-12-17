@@ -149,7 +149,7 @@ Calculate the creature's Intimidation based on its fearsome traits, imposing pre
 var intimidationPrompt = strings.ReplaceAll(humanReadableIntimidationPrompt, "\n", " ")
 
 const humanReadableEndurancePrompt = `
-Calculate the creature's Endurance based on its size, stamina, and lore. Endurance governs the monster's health and how many hits it can take before being defeated.`
+Calculate the creature's Endurance based on its size, stamina, and lore. Endurance governs the monster's energy and how many attacks it can perform before needing to rest.`
 
 var endurancePrompt = strings.ReplaceAll(humanReadableEndurancePrompt, "\n", " ")
 
@@ -157,6 +157,11 @@ const humanReadableLuckPrompt = `
 Calculate the creature's Luck based on its lore and any traits that suggest unpredictability or fortune. Luck affects critical hits, dodges, and random outcomes during battles or events.`
 
 var luckPrompt = strings.ReplaceAll(humanReadableLuckPrompt, "\n", " ")
+
+const humanReadableHitPointsPrompt = `
+Calculate the creature's Hit Points based on its size, build, and lore. Hit Points represent the number of hits the creature can take before being defeated.`
+
+var hitPointsPrompt = strings.ReplaceAll(humanReadableHitPointsPrompt, "\n", " ")
 
 type CreatureData struct {
 	Name                  string `json:"name"`
@@ -174,8 +179,9 @@ type CreatureData struct {
 	Aura                  int    `json:"aura"`         // Represents special defense
 	Charisma              int    `json:"charisma"`     // Determines charm and persuasiveness
 	Intimidation          int    `json:"intimidation"` // Represents fearsome or imposing traits
-	Endurance             int    `json:"endurance"`    // Governs health and stamina
+	Endurance             int    `json:"endurance"`    // Governs stamina
 	Luck                  int    `json:"luck"`         // Adds an unpredictable element
+	HitPoints             int    `json:"hit_points"`   // The base hit points of the creature
 }
 
 type ImageProcessor struct {
@@ -245,6 +251,7 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) error {
 	generatedImageData["intimidation"] = creatureData.Intimidation
 	generatedImageData["endurance"] = creatureData.Endurance
 	generatedImageData["luck"] = creatureData.Luck
+	generatedImageData["hitPoints"] = creatureData.HitPoints
 
 	// Step 2: Generate cartoon monster image using Replicate
 	generatedImageURI, err := ip.createCreatureImage(&creatureData.ImageGenerationPrompt)
@@ -398,11 +405,15 @@ func (ip *ImageProcessor) createCreatureData(base64Image *string) (*CreatureData
 							"type":        "integer",
 							"description": luckPrompt,
 						},
+						"hit_points": map[string]interface{}{
+							"type":        "integer",
+							"description": hitPointsPrompt,
+						},
 					},
 					"required": []string{
 						"name", "description", "image_generation_prompt", "photo_object", "primary_type",
 						"secondary_type", "height", "weight", "strength", "toughness", "agility", "arcana",
-						"aura", "charisma", "intimidation", "endurance", "luck",
+						"aura", "charisma", "intimidation", "endurance", "luck", "hit_points",
 					},
 					"additionalProperties": false,
 				},
