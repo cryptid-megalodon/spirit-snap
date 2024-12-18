@@ -3,7 +3,7 @@ import { useBattle } from '@/contexts/BattleContext';
 import { useTeams } from '@/contexts/TeamContext';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { View, Image, Modal, StyleSheet, Dimensions, Text , Alert, Pressable, TouchableOpacity } from 'react-native';
+import { View, Modal, StyleSheet, Dimensions, Text , Alert, Pressable, TouchableOpacity } from 'react-native';
 import { Team } from '@/models/Team';
 import { Battle } from '@/models/Battle';
 
@@ -45,14 +45,14 @@ export default function BattleScreen() {
     console.log(`Selected move: ${move}`);
     setModalVisible(false);
   };
-  console.log("p1 spirit 1:", playerOneTeam?.spirits[0])
+  console.log("p1 spirit 1:", playerOneTeam.spirits[0])
 
   return (
     <View style={styles.container}>
       {/* Top Row */}
       <View style={styles.topRow}>
-        <SpiritBattleCard spirit={playerTwoTeam?.spirits[1]} />
-        <SpiritBattleCard spirit={playerTwoTeam?.spirits[2]} />
+        <SpiritBattleCard spirit={playerTwoTeam.spirits[1]} />
+        <SpiritBattleCard spirit={playerTwoTeam.spirits[2]} />
       </View>
 
       {/* Middle Row */}
@@ -63,9 +63,9 @@ export default function BattleScreen() {
             </TouchableOpacity>
         </View>
         <View style={styles.middleRowFrontLine}>
-            <SpiritBattleCard spirit={playerTwoTeam?.spirits[0]} />
+            <SpiritBattleCard spirit={playerTwoTeam.spirits[0]} />
             <Pressable onPress={() => setModalVisible(true)}>
-              <SpiritBattleCard spirit={playerOneTeam?.spirits[0]} />
+              <SpiritBattleCard spirit={playerOneTeam.spirits[0]} />
             </Pressable>
         </View>
         <View style={styles.middleRowButtonColumn}>
@@ -77,8 +77,8 @@ export default function BattleScreen() {
 
       {/* Bottom Row */}
       <View style={styles.bottomRow}>
-        <SpiritBattleCard spirit={playerOneTeam?.spirits[1]} />
-        <SpiritBattleCard spirit={playerOneTeam?.spirits[2]} />
+        <SpiritBattleCard spirit={playerOneTeam.spirits[1]} />
+        <SpiritBattleCard spirit={playerOneTeam.spirits[2]} />
       </View>
 
       {/* Fighting Move Modal */}
