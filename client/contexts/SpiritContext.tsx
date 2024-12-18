@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react'
-import { Spirit } from '@/models/Spirit'
+import { Spirit, SpiritRawData, isCompleteSpirit } from '@/models/Spirit'
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 
@@ -51,34 +51,12 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
           Authorization: `Bearer ${idToken}`,
         },
       });
-      const spiritsData = response.data as Spirit[];
-      if (!spiritsData) {
+      const spiritsRawData = response.data as SpiritRawData[];
+      if (!spiritsRawData) {
         console.log('No spirits found.');
         return [];
       }
-      var filtered_spirits = spiritsData.filter(
-        (spirit) =>
-          spirit.id !== null &&
-          spirit.name !== null &&
-          spirit.description !== null &&
-          spirit.primaryType !== null &&
-          spirit.secondaryType !== null &&
-          spirit.originalImageDownloadUrl !== null &&
-          spirit.generatedImageDownloadUrl !== null &&
-          spirit.agility !== null &&
-          spirit.arcana !== null &&
-          spirit.aura !== null &&
-          spirit.charisma !== null &&
-          spirit.endurance !== null &&
-          spirit.height !== null &&
-          spirit.weight !== null &&
-          spirit.intimidation !== null &&
-          spirit.luck !== null &&
-          spirit.hitPoints !== null &&
-          spirit.strength !== null &&
-          spirit.toughness !== null
-      );
-      return filtered_spirits;
+      return spiritsRawData.filter(isCompleteSpirit)
     } catch (error) {
       console.error('Error fetching spirts:', error);
       return [];
