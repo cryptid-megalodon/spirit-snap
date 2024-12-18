@@ -1,3 +1,4 @@
+import SpiritBattleCard from '@/components/SpiritBattleCard';
 import { useBattle } from '@/contexts/BattleContext';
 import { useTeams } from '@/contexts/TeamContext';
 import { useLocalSearchParams } from 'expo-router';
@@ -10,9 +11,9 @@ export default function BattleScreen() {
   const params = useLocalSearchParams();
   const battleId = params.battleId as string;
   const [modalVisible, setModalVisible] = useState(false);
-  const [playerOneTeam, setPlayerOneTeam] = useState<Team | null>(null);
-  const [playerTwoTeam, setPlayerTwoTeam] = useState<Team | null>(null);
-  const [currentBattle, setCurrentBattle] = useState<Battle | null>(null);
+  const [playerOneTeam, setPlayerOneTeam] = useState<Team>({} as Team);
+  const [playerTwoTeam, setPlayerTwoTeam] = useState<Team>({} as Team);
+  const [currentBattle, setCurrentBattle] = useState<Battle>({} as Battle);
   const { getBattle } = useBattle();
   const { getTeam } = useTeams();
 
@@ -44,13 +45,14 @@ export default function BattleScreen() {
     console.log(`Selected move: ${move}`);
     setModalVisible(false);
   };
+  console.log("p1 spirit 1:", playerOneTeam?.spirits[0])
 
   return (
     <View style={styles.container}>
       {/* Top Row */}
       <View style={styles.topRow}>
-        <Image source={{ uri: playerTwoTeam?.spirits[1].generatedImageDownloadUrl }} style={styles.portrait} />
-        <Image source={{ uri: playerTwoTeam?.spirits[2].generatedImageDownloadUrl }} style={styles.portrait} />
+        <SpiritBattleCard spirit={playerTwoTeam?.spirits[1]} />
+        <SpiritBattleCard spirit={playerTwoTeam?.spirits[2]} />
       </View>
 
       {/* Middle Row */}
@@ -61,9 +63,9 @@ export default function BattleScreen() {
             </TouchableOpacity>
         </View>
         <View style={styles.middleRowFrontLine}>
-            <Image source={{ uri: playerTwoTeam?.spirits[0].generatedImageDownloadUrl }} style={styles.portrait} />
+            <SpiritBattleCard spirit={playerTwoTeam?.spirits[0]} />
             <Pressable onPress={() => setModalVisible(true)}>
-              <Image source={{ uri: playerOneTeam?.spirits[0].generatedImageDownloadUrl }} style={styles.portrait} />
+              <SpiritBattleCard spirit={playerOneTeam?.spirits[0]} />
             </Pressable>
         </View>
         <View style={styles.middleRowButtonColumn}>
@@ -75,8 +77,8 @@ export default function BattleScreen() {
 
       {/* Bottom Row */}
       <View style={styles.bottomRow}>
-        <Image source={{ uri: playerOneTeam?.spirits[1].generatedImageDownloadUrl }} style={styles.portrait} />
-        <Image source={{ uri: playerOneTeam?.spirits[2].generatedImageDownloadUrl }} style={styles.portrait} />
+        <SpiritBattleCard spirit={playerOneTeam?.spirits[1]} />
+        <SpiritBattleCard spirit={playerOneTeam?.spirits[2]} />
       </View>
 
       {/* Fighting Move Modal */}
