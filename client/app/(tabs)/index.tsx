@@ -2,15 +2,16 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
 import { Button, Modal, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler';
-import axios from 'axios';
-import { User } from 'firebase/auth';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSpiritContext } from '@/contexts/SpiritContext';
+import { create } from 'react-test-renderer';
 
 export default function Tab() {
   const [permission, requestPermission] = useCameraPermissions();
   const [zoom, setZoom] = useState(0);
   const cameraViewRef = useRef<CameraView | null>(null);
   const { user, loading } = useAuth();
+  const { createSpirit } = useSpiritContext();
   const [isProcessing, setIsProcessing] = useState(false);
 
   if (!permission) {
@@ -56,7 +57,7 @@ export default function Tab() {
           const base64Image = "data:image/jpg;base64," + picture.base64;
 
           setIsProcessing(true); // Show loading modal
-          await processImageBackendCall(base64Image, user);
+          await createSpirit(base64Image);
           setIsProcessing(false); // Hide loading modal
         } else {
           console.error('Error: Picture is undefined or missing URI.');
@@ -156,37 +157,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-// Main endpoint into processing user images.
-// Function to make API call to process the camera image using the backend server.
-export const processImageBackendCall = async (base64Image: string, user: User) => {
-  const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
-  if (url == undefined) {
-    throw Error("API URL is not set.")
-  }
-  if (user == null) {
-    throw new Error("User not logged in");
-  }
-  const idToken = await user.getIdToken();
-  const endpoint = url + "/ProcessImage";
-  console.log("Process Image Endpoint:", endpoint)
-  try {
-    const response = await axios.post(
-      endpoint,
-      {
-        'base64Image': base64Image,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`,
-        },
-      }
-    );
-    console.log("ProcessImage Response Status:", response.status);
-    return null;
-  } catch (error) {
-    console.error('Error fetching image caption:', error);
-    return null;
-  }
-};
