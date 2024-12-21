@@ -4,7 +4,6 @@ import { Button, Modal, StyleSheet, Text, TouchableOpacity, View, ActivityIndica
 import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSpiritContext } from '@/contexts/SpiritContext';
-import { create } from 'react-test-renderer';
 
 export default function Tab() {
   const [permission, requestPermission] = useCameraPermissions();
