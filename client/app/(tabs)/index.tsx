@@ -54,7 +54,7 @@ export default function Tab() {
         const picture = await cameraViewRef.current.takePictureAsync({ base64: true });
         if (picture && picture.uri && picture.base64) {
           const base64Image = "data:image/jpg;base64," + picture.base64;
-          
+
           setIsProcessing(true); // Show loading modal
           await processImageBackendCall(base64Image, user);
           setIsProcessing(false); // Hide loading modal
@@ -71,7 +71,7 @@ export default function Tab() {
   return (
     <GestureHandlerRootView style={styles.container}>
 
-<Modal
+      <Modal
         transparent
         animationType="fade"
         visible={isProcessing}
@@ -165,7 +165,7 @@ export const processImageBackendCall = async (base64Image: string, user: User) =
     throw Error("API URL is not set.")
   }
   if (user == null) {
-      throw new Error("User not logged in");
+    throw new Error("User not logged in");
   }
   const idToken = await user.getIdToken();
   const endpoint = url + "/ProcessImage";
