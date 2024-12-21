@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, Modal, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import axios from 'axios';
 import { User } from 'firebase/auth';
@@ -11,6 +11,7 @@ export default function Tab() {
   const [zoom, setZoom] = useState(0);
   const cameraViewRef = useRef<CameraView | null>(null);
   const { user, loading } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (!permission) {
     return <View />;
@@ -53,7 +54,10 @@ export default function Tab() {
         const picture = await cameraViewRef.current.takePictureAsync({ base64: true });
         if (picture && picture.uri && picture.base64) {
           const base64Image = "data:image/jpg;base64," + picture.base64;
-          processImageBackendCall(base64Image, user);
+          
+          setIsProcessing(true); // Show loading modal
+          await processImageBackendCall(base64Image, user);
+          setIsProcessing(false); // Hide loading modal
         } else {
           console.error('Error: Picture is undefined or missing URI.');
         }
@@ -66,6 +70,20 @@ export default function Tab() {
   };
   return (
     <GestureHandlerRootView style={styles.container}>
+
+<Modal
+        transparent
+        animationType="fade"
+        visible={isProcessing}
+        onRequestClose={() => setIsProcessing(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContent}>
+            <ActivityIndicator size="large" color="#ffffff" />
+            <Text style={styles.modalText}>Loading...</Text>
+          </View>
+        </View>
+      </Modal>
       <PinchGestureHandler
         onGestureEvent={handlePinchGesture}
       >
@@ -117,6 +135,25 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     margin: 5,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: 200,
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#333',
+    borderRadius: 10,
+  },
+  modalText: {
+    color: '#fff',
+    marginTop: 10,
+    fontSize: 16,
   },
 });
 
