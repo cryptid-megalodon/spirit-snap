@@ -4,6 +4,8 @@ import { Button, Modal, StyleSheet, Text, TouchableOpacity, View, ActivityIndica
 import { GestureHandlerRootView, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSpiritContext } from '@/contexts/SpiritContext';
+import SpiritCard from '@/components/SpiritCard';
+import { Spirit } from '@/models/Spirit';
 
 export default function Tab() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -12,6 +14,7 @@ export default function Tab() {
   const { user, loading } = useAuth();
   const { createSpirit } = useSpiritContext();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedSpirit, setSelectedSpirit] = useState<Spirit | null>(null);
 
   if (!permission) {
     return <View />;
@@ -56,7 +59,8 @@ export default function Tab() {
           const base64Image = "data:image/jpg;base64," + picture.base64;
 
           setIsProcessing(true); // Show loading modal
-          await createSpirit(base64Image);
+          const spirit = await createSpirit(base64Image);
+          setSelectedSpirit(spirit);
           setIsProcessing(false); // Hide loading modal
         } else {
           console.error('Error: Picture is undefined or missing URI.');
@@ -71,6 +75,27 @@ export default function Tab() {
   return (
     <GestureHandlerRootView style={styles.container}>
 
+      <PinchGestureHandler
+        onGestureEvent={handlePinchGesture}
+      >
+        <CameraView style={styles.camera} ref={cameraViewRef} zoom={zoom}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} onPress={takePicture}>
+              <Text style={styles.text}>Take Picture</Text>
+            </TouchableOpacity>
+          </View>
+        </CameraView>
+      </PinchGestureHandler>
+
+      {selectedSpirit && (
+        <SpiritCard
+          visible={true}
+          spiritData={selectedSpirit}
+          onClose={() => setSelectedSpirit(null)}
+        />
+      )}
+
+      {/* Loading Modal */}
       <Modal
         transparent
         animationType="fade"
@@ -84,18 +109,9 @@ export default function Tab() {
           </View>
         </View>
       </Modal>
-      <PinchGestureHandler
-        onGestureEvent={handlePinchGesture}
-      >
-        <CameraView style={styles.camera} ref={cameraViewRef} zoom={zoom}>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={takePicture}>
-              <Text style={styles.text}>Take Picture</Text>
-            </TouchableOpacity>
-          </View>
-        </CameraView>
-      </PinchGestureHandler>
+
     </GestureHandlerRootView>
+
   );
 }
 

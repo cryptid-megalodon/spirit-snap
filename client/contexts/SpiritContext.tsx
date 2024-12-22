@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 type SpiritContextType = {
-  createSpirit: (base64Image: string) => Promise<null>
+  createSpirit: (base64Image: string) => Promise<Spirit>
   getSpirit: (spiritId: string) => Promise<Spirit | undefined>
   getSpirits: (spiritIds: string[]) => Promise<Spirit[] | undefined>
   getUserSpirits: () => Promise<Spirit[]>
@@ -33,7 +33,7 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
 
   // Main endpoint into processing user images.
   // Function to make API call to process the camera image using the backend server.
-  const createSpirit = async (base64Image: string) => {
+  const createSpirit = async (base64Image: string): Promise<Spirit> => {
     const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
     if (url == undefined) {
       throw Error("API URL is not set.")
@@ -58,10 +58,20 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
         }
       );
       console.log("ProcessImage Response Status:", response.status);
-      return null;
+      const spiritRawData = response.data as SpiritRawData;
+      if (!spiritRawData) {
+        console.log('No spirit data returned.');
+        return {} as Spirit;
+      }
+      if (isCompleteSpirit(spiritRawData)) {
+        return spiritRawData;
+      } else {
+        console.log('Incomplete spirit data.');
+        return {} as Spirit;
+      }
     } catch (error) {
       console.error('Error fetching image caption:', error);
-      return null;
+      return {} as Spirit;
     }
   }
 
