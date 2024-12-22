@@ -11,159 +11,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"spirit-snap/server/models"
 	"strings"
 	"time"
 )
 
-const humanReadablePrompt = `
-Imagine a new creature based on the subject of this image. Create a
-cohesive name, description and a prompt for an image generation model
-that will generate an image for the creature. Imagine creative traits and features
-about the monster that highlight or modify the subject's appearance in the prompt.
-The image should have a vibrant anime art style.`
-
-var prompt = strings.ReplaceAll(humanReadablePrompt, "\n", " ")
-
-const humanReadableCreatureNamePrompt = `
-Create a name for a creature in a game, following these guidelines:
-
-1. **Portmanteau and Fusion Words**: Combine two or more words related to the creature’s abilities, appearance, or type. For example, a plant-reptile creature could be named "Floragon" (flora + dragon) or "Leafor" (leaf + roar).
-
-2. **Sound Mimicry**: Use sounds that resemble or evoke the creature’s characteristics. For a quick, agile creature, consider a name with snappy or sharp sounds like "Zapet" or "Flink."
-
-3. **Descriptive Elements**: Include words or syllables that hint at the creature’s elemental type, habitat, or behavior. For a fire-breathing canine, a name like "Blazehound" or "Inferfang" could convey its fiery, fierce nature.
-
-4. **Phonetic Appeal**: Make the name catchy, short, and easy to say. Simple, memorable names like "Mondo" or "Peblar" are easy to remember and give the creature a unique identity.
-
-5. **Playful Alliteration and Rhyming**: Consider names that rhyme or use repetition to add charm, like "Scorpy Pounce" for a scorpion-like creature, or "Fluffyflame" for a gentle fire creature.
-
-6. **Cultural and Linguistic References**: Draw inspiration from mythological, linguistic, or cultural references that match the creature's background or lore. For example, "Drakonis" might be a name for a dragon-inspired creature, borrowing from ancient mythology.
-
-### Examples:
-- For a water-dwelling snake, you could create names like "Aquasnake," "Hydravine," or "Ripcoil."
-- For an icy bird, names could include "Frostfeather," "Glaciawl," or "Snowflap."
-- For a creature with electricity-based powers, try names like "Boltstrike," "Zapico," or "Electross."
-
-Use these ideas to create a name that feels both imaginative and descriptive, helping players instantly connect with the creature’s nature and abilities.`
-
-var creatureNamePrompt = strings.ReplaceAll(humanReadableCreatureNamePrompt, "\n", " ")
-
-const humanReadableSpritePrompt = `
-Create a text-to-image prompt for a creature sprite in a game, incorporating the following guidelines to capture an imaginative, pixel-art style. Aim for a design that is compact, visually engaging, and communicates the creature’s unique traits.
-
-1. **Compact and Expressive Design**: Describe the creature’s defining features, colors, and shape so that it’s clear in a small, pixelated form. Focus on elements that communicate personality, such as a happy expression, a fierce stance, or a mischievous glint in the eyes.
-
-2. **Stylized Proportions**: Emphasize unique features by suggesting enlarged or stylized proportions. For example, if it’s a fast creature, suggest long limbs; if it’s a wise creature, suggest large eyes or an owl-like head.
-
-3. **Whimsical and Surprising Elements**: Include one or two imaginative twists, such as unusual limbs, elemental features (like flames, ice crystals, or vines), or magical accessories. For example, “A small lizard with a flaming tail” or “An owl with branches instead of wings.”
-
-4. **Vibrant Color Palettes**: Specify colors that reflect the creature’s elemental or personality traits (e.g., fiery reds and oranges, earthy greens and browns, icy blues and whites). Mention color accents that enhance these traits, like “a bright red shell with yellow spikes.”
-
-5. **Expressive Poses or Subtle Animations**: Suggest an expressive pose that hints at the creature’s character, such as a “confident, forward stance” for a brave creature or a “playful, crouching position” for a shy one. If animated, mention small, repetitive movements, like a flickering tail or blinking eyes.
-
-6. **Detail and Minimalist Shading**: Mention basic shading and details to give dimension without over-complicating the sprite. For example, “Add light shadowing under its feet for depth” or “Use simple highlights to suggest a glossy, metallic surface.”
-
-### Example Prompts:
-- "A small, chubby dragon with a rounded snout, large, friendly eyes, and tiny wings. It has green scales with light yellow highlights and a curled tail. In a playful, seated pose, looking up with curiosity."
-- "A fierce, fox-like creature with sharp red fur, blue lightning bolt markings, and narrowed yellow eyes. The sprite is small but includes a dynamic, lunging pose to show its speed."
-- "A plant-inspired creature, resembling a turtle with leaves growing from its back. It has a gentle expression, with vibrant green shell and earthy brown legs. The sprite is facing forward with a peaceful pose."
-
-Create a prompt with these elements to capture the creature’s defining features and overall personality while keeping the design simple, expressive, and suitable for a pixel-art sprite.`
-
-var spritePrompt = strings.ReplaceAll(humanReadableSpritePrompt, "\n", " ")
-
-const humanReadablePhotoObjectPrompt = `
-What is the object in this photo?`
-
-var photoObjectPrompt = strings.ReplaceAll(humanReadablePhotoObjectPrompt, "\n", " ")
-
-const humanReadableDescriptionPrompt = `
-Create a new entry for this creature in the monster encyclopedia, the intent should
-be to give readers a meaningful glimpse into the creature’s life cycle,
-behaviors, or unique attributes in a way that feels both credible and
-enchanting. Each entry should provide a standalone insight, highlighting
-either an aspect of the creature’s appearance, abilities, or behavior. When
-creating entries for new creatures, authors might aim to blend the familiar
-and the fantastical, grounding each creature in an observable, relatable
-behavior that invites players to imagine the creature’s life in its world
-while hinting at its powers or evolutionary potential.`
-
-var descriptionPrompt = strings.ReplaceAll(humanReadableDescriptionPrompt, "\n", " ")
-
-const humanReadablePrimaryTypePrompt = `
-Select the creature type that best represents the creature's style and captures
-its natural elemental affinities.`
-
-var primaryTypePrompt = strings.ReplaceAll(humanReadablePrimaryTypePrompt, "\n", " ")
-
-const humanReadableSecondaryTypePrompt = `
-If the creature has a compelling secondary type that adds more character, pick
-a secondary type. Otherwise pick "None". A single type can be more compelling
-if it's a strong fit for the creature's lore or background.`
-
-var secondaryTypePrompt = strings.ReplaceAll(humanReadableSecondaryTypePrompt, "\n", " ")
-
-const humanReadableHeightPrompt = `
-Calculate the creature's height based on its physical description and lore. Height should be the number of centimeters.`
-
-var heightPrompt = strings.ReplaceAll(humanReadableHeightPrompt, "\n", " ")
-
-const humanReadableWeightPrompt = `
-Calculate the creature's weight based on its physical description and lore. Weight should be the number of kilograms.`
-
-var weightPrompt = strings.ReplaceAll(humanReadableWeightPrompt, "\n", " ")
-
-const humanReadableStrengthPrompt = `
-Calculate the creature's Strength based on its physical description, lore, and capabilities. Strength determines physical attack power and how much damage it can deal in physical moves.`
-
-var strengthPrompt = strings.ReplaceAll(humanReadableStrengthPrompt, "\n", " ")
-
-const humanReadableToughnessPrompt = `
-Calculate the creature's Toughness based on its physical resilience, build, and lore. Toughness reduces the damage taken from physical attacks.`
-
-var toughnessPrompt = strings.ReplaceAll(humanReadableToughnessPrompt, "\n", " ")
-
-const humanReadableAgilityPrompt = `
-Calculate the creature's Agility based on its speed, grace, and lore. Agility determines turn order in battles and increases the chance to dodge incoming attacks.`
-
-var agilityPrompt = strings.ReplaceAll(humanReadableAgilityPrompt, "\n", " ")
-
-const humanReadableArcanaPrompt = `
-Calculate the creature's Arcana based on its mental or supernatural abilities, description, and lore. Arcana governs special attack power for mental or energy-based moves.`
-
-var arcanaPrompt = strings.ReplaceAll(humanReadableArcanaPrompt, "\n", " ")
-
-const humanReadableAuraPrompt = `
-Calculate the creature's Aura based on its magical or supernatural resistance, description, and lore. Aura represents special defense, reducing the impact of mental or energy-based attacks.`
-
-var auraPrompt = strings.ReplaceAll(humanReadableAuraPrompt, "\n", " ")
-
-const humanReadableCharismaPrompt = `
-Calculate the creature's Charisma based on its charm, persuasive nature, and lore. Charisma influences interactions, charm-based moves, and the ability to gain favor or allies.`
-
-var charismaPrompt = strings.ReplaceAll(humanReadableCharismaPrompt, "\n", " ")
-
-const humanReadableIntimidationPrompt = `
-Calculate the creature's Intimidation based on its fearsome traits, imposing presence, and lore. Intimidation impacts an opponent's morale, increasing the likelihood of errors or lowering their stats temporarily.`
-
-var intimidationPrompt = strings.ReplaceAll(humanReadableIntimidationPrompt, "\n", " ")
-
-const humanReadableEndurancePrompt = `
-Calculate the creature's Endurance based on its size, stamina, and lore. Endurance governs the monster's energy and how many attacks it can perform before needing to rest.`
-
-var endurancePrompt = strings.ReplaceAll(humanReadableEndurancePrompt, "\n", " ")
-
-const humanReadableLuckPrompt = `
-Calculate the creature's Luck based on its lore and any traits that suggest unpredictability or fortune. Luck affects critical hits, dodges, and random outcomes during battles or events.`
-
-var luckPrompt = strings.ReplaceAll(humanReadableLuckPrompt, "\n", " ")
-
-const humanReadableHitPointsPrompt = `
-Calculate the creature's Hit Points based on its size, build, and lore. Hit Points represent the number of hits the creature can take before being defeated.`
-
-var hitPointsPrompt = strings.ReplaceAll(humanReadableHitPointsPrompt, "\n", " ")
-
-type CreatureData struct {
+// JSON schema spec for unmarshelling the OpenAI API create spirit request.
+type SpiritData struct {
 	Name                  string `json:"name"`
 	Description           string `json:"description"`
 	ImageGenerationPrompt string `json:"image_generation_prompt"`
@@ -193,12 +47,13 @@ type ImageProcessor struct {
 // StorageInterface defines an interface for interacting with Storeage Wrapper.
 type StorageInterface interface {
 	Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error
+	GetDownloadURL(ctx context.Context, bucketName, objectName string) (string, error)
 }
 
 // DatastoreInterface is an interface that defines methods for interacting with the Datastore backend.
 // It allows for dependency injection and easier testing by allowing mocking of DatastoreClient interactions.
 type DatastoreInterface interface {
-	AddDocument(ctx context.Context, collectionName string, data interface{}) error
+	AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error)
 	Close() error
 }
 
@@ -220,43 +75,43 @@ func (ip *ImageProcessor) Close() {
 
 // This is the implementation for the processImage endpoint. It will be called
 // at high QPS.
-func (ip *ImageProcessor) Process(base64Image *string, userId *string) error {
-	generatedImageData := make(map[string]interface{})
+func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.Spirit, error) {
+	doc := make(map[string]interface{})
 	// ISO 8601 Timestamp (human-readable UTC date and time)
 	timestamp := time.Now().UTC().Format(time.RFC3339)
-	generatedImageData["imageTimestamp"] = timestamp
+	doc["imageTimestamp"] = timestamp
 
 	originalFilename := fmt.Sprintf("%s-original.jpeg", timestamp)
 	generatedFilename := fmt.Sprintf("%s-generated.webp", timestamp)
 
 	// Step 1: Get the image caption from OpenAI
-	creatureData, err := ip.createCreatureData(base64Image)
-	if err != nil || creatureData == nil {
-		return err
+	spiritData, err := ip.generateSpiritData(base64Image)
+	if err != nil || spiritData == nil {
+		return models.Spirit{}, err
 	}
-	generatedImageData["name"] = creatureData.Name
-	generatedImageData["description"] = creatureData.Description
-	generatedImageData["imageGenerationPrompt"] = creatureData.ImageGenerationPrompt
-	generatedImageData["photoObject"] = creatureData.PhotoObject
-	generatedImageData["primaryType"] = creatureData.PrimaryType
-	generatedImageData["secondaryType"] = creatureData.SecondaryType
-	generatedImageData["height"] = creatureData.Height
-	generatedImageData["weight"] = creatureData.Weight
-	generatedImageData["strength"] = creatureData.Strength
-	generatedImageData["toughness"] = creatureData.Toughness
-	generatedImageData["agility"] = creatureData.Agility
-	generatedImageData["arcana"] = creatureData.Arcana
-	generatedImageData["aura"] = creatureData.Aura
-	generatedImageData["charisma"] = creatureData.Charisma
-	generatedImageData["intimidation"] = creatureData.Intimidation
-	generatedImageData["endurance"] = creatureData.Endurance
-	generatedImageData["luck"] = creatureData.Luck
-	generatedImageData["hitPoints"] = creatureData.HitPoints
+	doc["name"] = spiritData.Name
+	doc["description"] = spiritData.Description
+	doc["imageGenerationPrompt"] = spiritData.ImageGenerationPrompt
+	doc["photoObject"] = spiritData.PhotoObject
+	doc["primaryType"] = spiritData.PrimaryType
+	doc["secondaryType"] = spiritData.SecondaryType
+	doc["height"] = spiritData.Height
+	doc["weight"] = spiritData.Weight
+	doc["strength"] = spiritData.Strength
+	doc["toughness"] = spiritData.Toughness
+	doc["agility"] = spiritData.Agility
+	doc["arcana"] = spiritData.Arcana
+	doc["aura"] = spiritData.Aura
+	doc["charisma"] = spiritData.Charisma
+	doc["intimidation"] = spiritData.Intimidation
+	doc["endurance"] = spiritData.Endurance
+	doc["luck"] = spiritData.Luck
+	doc["hitPoints"] = spiritData.HitPoints
 
 	// Step 2: Generate cartoon monster image using Replicate
-	generatedImageURI, err := ip.createCreatureImage(&creatureData.ImageGenerationPrompt)
+	generatedImageURI, err := ip.createSpiritImage(&spiritData.ImageGenerationPrompt)
 	if err != nil || generatedImageURI == "" {
-		return err
+		return models.Spirit{}, err
 	}
 
 	const origPrefix = "data:image/jpg;base64,"
@@ -265,44 +120,45 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) error {
 	// Decode the base64-encoded image data
 	decodedOrigImageData, err := base64.StdEncoding.DecodeString(trimmedBase64Image)
 	if err != nil {
-		return fmt.Errorf("failed to decode original base64 image data: %v", err)
+		return models.Spirit{}, fmt.Errorf("failed to decode original base64 image data: %v", err)
 	}
 
 	// Download generated image
 	resp, err := ip.HttpClient.Get(generatedImageURI)
 	if err != nil {
-		return err
+		return models.Spirit{}, err
 	}
 	defer resp.Body.Close()
 	generatedImage, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return models.Spirit{}, err
 	}
 
 	// Step 3: Upload results to Firebase Storage and Firestore
 	ctx := context.Background()
 	origFilePath := "photos/" + *userId + "/" + originalFilename
 	if err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", origFilePath, []byte(decodedOrigImageData), "image/jpeg"); err != nil {
-		return err
+		return models.Spirit{}, err
 	}
 
 	genFilePath := "generatedImages/" + *userId + "/" + generatedFilename
 	if err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", genFilePath, generatedImage, "image/webp"); err != nil {
-		return err
+		return models.Spirit{}, err
 	}
-	generatedImageData["originalImageFilePath"] = origFilePath
-	generatedImageData["generatedImageFilePath"] = genFilePath
+	doc["originalImageFilePath"] = origFilePath
+	doc["generatedImageFilePath"] = genFilePath
 
-	err = ip.DatastoreClient.AddDocument(ctx, "users/"+*userId+"/spirits", generatedImageData)
+	docId, err := ip.DatastoreClient.AddDocument(ctx, "users/"+*userId+"/spirits", doc)
 	if err != nil {
-		return err
+		return models.Spirit{}, err
 	}
-	log.Printf("Generated image data: %+v", generatedImageData)
-
-	return nil
+	log.Printf("Generated image data: %+v", doc)
+	doc["id"] = docId
+	spirit := models.ExtractSpiritfromDocData(ctx, ip.StorageClient, doc)
+	return spirit, nil
 }
 
-func (ip *ImageProcessor) createCreatureData(base64Image *string) (*CreatureData, error) {
+func (ip *ImageProcessor) generateSpiritData(base64Image *string) (*SpiritData, error) {
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
 		return nil, fmt.Errorf("OpenAI API key not set")
@@ -455,14 +311,14 @@ func (ip *ImageProcessor) createCreatureData(base64Image *string) (*CreatureData
 		return nil, err
 	}
 
-	creatureData, err := getContentFromOpenAiResponse(result)
+	spiritData, err := getContentFromOpenAiResponse(result)
 	if err != nil {
 		return nil, fmt.Errorf("unexpected OpenAI API response: %s", err)
 	}
-	return creatureData, nil
+	return spiritData, nil
 }
 
-func (ip *ImageProcessor) createCreatureImage(prompt *string) (string, error) {
+func (ip *ImageProcessor) createSpiritImage(prompt *string) (string, error) {
 	apiKey := os.Getenv("REPLICATE_API_TOKEN")
 	if apiKey == "" {
 		return "", fmt.Errorf("replicate API token not set")
@@ -538,7 +394,7 @@ func (ip *ImageProcessor) createCreatureImage(prompt *string) (string, error) {
 
 // This function takes a JSON response from the OpenAI Completions API and safely
 // retrieves the generated JSON result.
-func getContentFromOpenAiResponse(result map[string]interface{}) (*CreatureData, error) {
+func getContentFromOpenAiResponse(result map[string]interface{}) (*SpiritData, error) {
 	choices, ok := result["choices"]
 	if !ok {
 		return nil, fmt.Errorf("missing 'choices' key in response")
@@ -570,14 +426,14 @@ func getContentFromOpenAiResponse(result map[string]interface{}) (*CreatureData,
 	log.Print("OpenAI Response:", content)
 
 	// Create a map to store the parsed JSON
-	var creatureData CreatureData
+	var spiritData SpiritData
 
-	err := json.Unmarshal([]byte(content), &creatureData)
+	err := json.Unmarshal([]byte(content), &spiritData)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling content: %v", err)
 	}
 
-	return &creatureData, nil
+	return &spiritData, nil
 }
 
 // This function takes a JSON response from the Replicate Image Generation API

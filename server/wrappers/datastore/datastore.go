@@ -44,10 +44,14 @@ func NewClient(ctx context.Context, app *firebase.App) (*Client, error) {
 //   - data: The document data to be added.
 //
 // Returns:
+//   - The ID of the newly added document, or an empty string if the operation fails.
 //   - An error if the operation fails, otherwise nil.
-func (r *Client) AddDocument(ctx context.Context, collectionName string, data interface{}) error {
-	_, _, err := r.Client.Collection(collectionName).Add(ctx, data)
-	return err
+func (r *Client) AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error) {
+	docRef, _, err := r.Client.Collection(collectionName).Add(ctx, data)
+	if err != nil {
+		return "", err
+	}
+	return docRef.ID, err
 }
 
 // PageResult represents a page of documents with cursor information

@@ -23,13 +23,13 @@ func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 type MockFirestoreClient struct {
-	AddDocumentFunc func(ctx context.Context, collectionName string, data interface{}) error
+	AddDocumentFunc func(ctx context.Context, collectionName string, data interface{}) (string, error)
 	CloseFunc       func() error
 }
 
-func (m *MockFirestoreClient) AddDocument(ctx context.Context, collectionName string, data interface{}) error {
+func (m *MockFirestoreClient) AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error) {
 	if m.AddDocumentFunc == nil {
-		return errors.New("collection function not defined")
+		return "", errors.New("collection function not defined")
 	}
 	return m.AddDocumentFunc(ctx, collectionName, data)
 }
@@ -42,8 +42,17 @@ func (m *MockFirestoreClient) Close() error {
 }
 
 type MockStorageClient struct {
-	WriteFunc func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error
-	CloseFunc func() error
+	GetDownloadURLFunc func(ctx context.Context, bucketName string, objectName string) (string, error)
+	WriteFunc          func(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error
+	CloseFunc          func() error
+}
+
+// GetDownloadURL implements StorageInterface.
+func (m *MockStorageClient) GetDownloadURL(ctx context.Context, bucketName string, objectName string) (string, error) {
+	if m.GetDownloadURLFunc != nil {
+		return m.GetDownloadURLFunc(ctx, bucketName, objectName)
+	}
+	return "", nil
 }
 
 func (m *MockStorageClient) Write(ctx context.Context, bucketName, objectName string, data []byte, contentType string) error {
@@ -80,8 +89,8 @@ func TestProcess_Success(t *testing.T) {
 
 	// Mock FirestoreClient
 	mockFirestore := &MockFirestoreClient{
-		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) error {
-			return nil
+		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) (string, error) {
+			return "test_id", nil
 		},
 	}
 
@@ -130,10 +139,14 @@ func TestProcess_Success(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image, &userId)
+	spirit, err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.NoError(t, err)
+	assert.NotNil(t, spirit)
+	assert.Equal(t, "test_id", *spirit.ID)
+	assert.Equal(t, "Glimmering Griffon", *spirit.Name)
+	assert.Equal(t, "A majestic griffon with shimmering golden feathers and a piercing gaze.", *spirit.Description)
 }
 
 func TestProcess_FailOnCaptionGeneration(t *testing.T) {
@@ -169,7 +182,7 @@ func TestProcess_FailOnCaptionGeneration(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image, &userId)
+	_, err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -209,7 +222,7 @@ func TestProcess_FailOnMisunderstoodImageCaptionResponse(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image, &userId)
+	_, err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -264,7 +277,7 @@ func TestProcess_FailOnImageGeneration(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image, &userId)
+	_, err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -319,7 +332,7 @@ func TestProcess_FailOnMisunderstoodImageGenerationResponse(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image, &userId)
+	_, err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -393,7 +406,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image, &userId)
+	_, err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)
@@ -420,8 +433,8 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 
 	// Mock FirestoreClient to fail on AddDocument
 	mockFirestore := &MockFirestoreClient{
-		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) error {
-			return errors.New("firestore write failed")
+		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) (string, error) {
+			return "", errors.New("firestore write failed")
 		},
 	}
 
@@ -471,7 +484,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
 
 	// Execute
-	err := ip.Process(&base64Image, &userId)
+	_, err := ip.Process(&base64Image, &userId)
 
 	// Assert
 	assert.Error(t, err)

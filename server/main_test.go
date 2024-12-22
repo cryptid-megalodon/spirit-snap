@@ -18,10 +18,10 @@ import (
 
 // MockImageProcessor implements the Processor interface for testing
 type MockImageProcessor struct {
-	ProcessFunc func(image *string, userId *string) error
+	ProcessFunc func(image *string, userId *string) (models.Spirit, error)
 }
 
-func (m *MockImageProcessor) Process(image *string, userId *string) error {
+func (m *MockImageProcessor) Process(image *string, userId *string) (models.Spirit, error) {
 	return m.ProcessFunc(image, userId)
 }
 
@@ -93,8 +93,8 @@ func TestProcessImageHandler_InternalServerError(t *testing.T) {
 	// Setup
 	server := &Server{
 		ImageProcessor: &MockImageProcessor{
-			ProcessFunc: func(image *string, userId *string) error {
-				return fmt.Errorf("mock error")
+			ProcessFunc: func(image *string, userId *string) (models.Spirit, error) {
+				return models.Spirit{}, fmt.Errorf("mock error")
 			},
 		},
 		AuthClient: &MockAuthClient{},
@@ -120,8 +120,8 @@ func TestProcessImageHandler_Success(t *testing.T) {
 	// Setup
 	server := &Server{
 		ImageProcessor: &MockImageProcessor{
-			ProcessFunc: func(image *string, userId *string) error {
-				return nil // Simulate successful processing
+			ProcessFunc: func(image *string, userId *string) (models.Spirit, error) {
+				return models.Spirit{ID: ptr("test_id")}, nil
 			},
 		},
 		AuthClient: &MockAuthClient{},
@@ -140,9 +140,10 @@ func TestProcessImageHandler_Success(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "Image processed successfully", rr.Body.String())
+	expectedResponse := models.Spirit{ID: ptr("test_id")}
+	expectedJSON, _ := json.Marshal(expectedResponse)
+	assert.Equal(t, string(expectedJSON)+"\n", rr.Body.String())
 }
-
 func TestProcessImageHandler_Unauthorized(t *testing.T) {
 	// Setup
 	server := &Server{
@@ -255,8 +256,9 @@ func TestFetchSpiritsHandler_InternalServerError(t *testing.T) {
 func TestFetchSpiritsHandler_Success(t *testing.T) {
 	// Setup
 	mockSpirits := []models.Spirit{
-		{ID: "1", Name: "Spirit 1"},
-		{ID: "2", Name: "Spirit 2"},
+
+		{ID: ptr("1"), Name: ptr("Spirit 1")},
+		{ID: ptr("2"), Name: ptr("Spirit 2")},
 	}
 
 	server := &Server{
@@ -282,4 +284,8 @@ func TestFetchSpiritsHandler_Success(t *testing.T) {
 	err := json.NewDecoder(rr.Body).Decode(&response)
 	assert.NoError(t, err)
 	assert.Equal(t, mockSpirits, response)
+
+}
+func ptr(s string) *string {
+	return &s
 }

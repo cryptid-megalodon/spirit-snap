@@ -27,7 +27,7 @@ import (
 )
 
 type ImageProcessorInterface interface {
-	Process(image *string, userId *string) error
+	Process(image *string, userId *string) (models.Spirit, error)
 	Close()
 }
 
@@ -100,15 +100,15 @@ func (s *Server) processImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.ImageProcessor.Process(&image.Base64Image, &token.UID)
+	spirit, err := s.ImageProcessor.Process(&image.Base64Image, &token.UID)
 	if err != nil {
 		log.Printf("Error during image processing: %s", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Image processed successfully"))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(spirit)
 }
 
 func (s *Server) fetchSpiritsHandler(w http.ResponseWriter, r *http.Request) {

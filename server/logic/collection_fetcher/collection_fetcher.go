@@ -37,94 +37,9 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 	}
 
 	// Get download URLs for each spirit's images
-	var spiritData []models.Spirit
-	for _, spirit := range result.Documents {
-		id := getOptionalStringField(spirit, "id")
-		name := getOptionalStringField(spirit, "name")
-		description := getOptionalStringField(spirit, "description")
-		primaryType := getOptionalStringField(spirit, "primaryType")
-		secondaryType := getOptionalStringField(spirit, "secondaryType")
-
-		var originalUrl, generatedUrl *string
-		originalUrl = getImageURL(ctx, sp.StorageClient, spirit, "originalImageFilePath")
-		generatedUrl = getImageURL(ctx, sp.StorageClient, spirit, "generatedImageFilePath")
-
-		// Extract numeric fields and set default values if not present
-		agility := getOptionalIntField(spirit, "agility")
-		arcana := getOptionalIntField(spirit, "arcana")
-		aura := getOptionalIntField(spirit, "aura")
-		charisma := getOptionalIntField(spirit, "charisma")
-		endurance := getOptionalIntField(spirit, "endurance")
-		height := getOptionalIntField(spirit, "height")
-		weight := getOptionalIntField(spirit, "weight")
-		intimidation := getOptionalIntField(spirit, "intimidation")
-		luck := getOptionalIntField(spirit, "luck")
-		strength := getOptionalIntField(spirit, "strength")
-		toughness := getOptionalIntField(spirit, "toughness")
-
-		spiritData = append(spiritData, models.Spirit{
-			ID:                id,
-			Name:              name,
-			Description:       description,
-			PrimaryType:       primaryType,
-			SecondaryType:     secondaryType,
-			OriginalImageURL:  originalUrl,
-			GeneratedImageURL: generatedUrl,
-
-			Agility:      agility,
-			Arcana:       arcana,
-			Aura:         aura,
-			Charisma:     charisma,
-			Endurance:    endurance,
-			Height:       height,
-			Weight:       weight,
-			Intimidation: intimidation,
-			Luck:         luck,
-			Strength:     strength,
-			Toughness:    toughness,
-		})
+	var spirits []models.Spirit
+	for _, doc := range result.Documents {
+		spirits = append(spirits, models.ExtractSpiritfromDocData(ctx, sp.StorageClient, doc))
 	}
-
-	return spiritData, nil
-}
-
-func getImageURL(ctx context.Context, storageClient StorageInterface, spirit map[string]interface{}, pathField string) *string {
-	if path, ok := spirit[pathField].(string); ok {
-		if url, err := storageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", path); err == nil {
-			return &url
-		}
-	}
-	return nil
-}
-
-// Helper function to safely extract integer fields from the map
-func getOptionalIntField(spirit map[string]interface{}, fieldName string) *int {
-	value, ok := spirit[fieldName]
-	if !ok || value == nil {
-		return nil
-	}
-	switch v := value.(type) {
-	case int:
-		return &v
-	case int64:
-		val := int(v)
-		return &val
-	case float64:
-		val := int(v)
-		return &val
-	default:
-		return nil
-	}
-}
-
-// Helper function to safely extract string fields from the map
-func getOptionalStringField(spirit map[string]interface{}, fieldName string) *string {
-	value, ok := spirit[fieldName]
-	if !ok || value == nil {
-		return nil
-	}
-	if v, ok := value.(string); ok {
-		return &v
-	}
-	return nil
+	return spirits, nil
 }
