@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 type SpiritContextType = {
+  createSpirit: (base64Image: string) => Promise<null>
   getSpirit: (spiritId: string) => Promise<Spirit | undefined>
   getSpirits: (spiritIds: string[]) => Promise<Spirit[] | undefined>
   getUserSpirits: () => Promise<Spirit[]>
@@ -28,6 +29,40 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
       return spirit[0];
     }
     return undefined;
+  }
+
+  // Main endpoint into processing user images.
+  // Function to make API call to process the camera image using the backend server.
+  const createSpirit = async (base64Image: string) => {
+    const url = process.env.EXPO_PUBLIC_BACKEND_SERVER_URL;
+    if (url == undefined) {
+      throw Error("API URL is not set.")
+    }
+    if (user == null) {
+      throw new Error("User not logged in");
+    }
+    const idToken = await user.getIdToken();
+    const endpoint = url + "/ProcessImage";
+    console.log("Process Image Endpoint:", endpoint)
+    try {
+      const response = await axios.post(
+        endpoint,
+        {
+          'base64Image': base64Image,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+        }
+      );
+      console.log("ProcessImage Response Status:", response.status);
+      return null;
+    } catch (error) {
+      console.error('Error fetching image caption:', error);
+      return null;
+    }
   }
 
   const getSpirits = async (spiritIds: string[]): Promise<Spirit[] | undefined> => {
@@ -64,7 +99,7 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SpiritContext.Provider value={{ getSpirit, getSpirits, getUserSpirits }}>
+    <SpiritContext.Provider value={{ createSpirit, getSpirit, getSpirits, getUserSpirits }}>
       {children}
     </SpiritContext.Provider>
   )
