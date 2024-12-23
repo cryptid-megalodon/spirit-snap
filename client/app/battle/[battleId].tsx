@@ -25,7 +25,7 @@ enum Position {
   BOTTOM_BENCH_RIGHT = 'Bottom-Bench-Right'
 }
 
-const ACTIVE_BENCH = [Position.BOTTOM_BENCH_LEFT, Position.BOTTOM_BENCH_CENTER, Position.BOTTOM_BENCH_RIGHT]
+const BOTTOM_BENCH = [Position.BOTTOM_BENCH_LEFT, Position.BOTTOM_BENCH_CENTER, Position.BOTTOM_BENCH_RIGHT]
 
 const initBattlePositionMap = (playerOneTeam: Spirit[], playerTwoTeam: Spirit[]): Map<Position, Spirit> => {
   return new Map<Position, Spirit>([
@@ -90,12 +90,11 @@ export default function BattleScreen() {
   const handleSpiritClick = (spirit: Spirit, positionId: Position) => {
     if (swapMode) {
       if (swapPositionId === undefined) {
-        // if (positionId in ACTIVE_BENCH) {
-        //   // Select first swap selection if valid selection.
-        //   setSwapPositionId(positionId);
-        // }
-        setSwapPositionId(positionId);
-        return;
+        if (BOTTOM_BENCH.includes(positionId)) {
+          // Handle first swap click.
+          setSwapPositionId(positionId);
+          return;
+        }
       } else {
         // Handle second swap click.
         if (swapPositionId === positionId) {
@@ -104,6 +103,10 @@ export default function BattleScreen() {
           return;
         } else {
           // Execute swap.
+          if (BOTTOM_BENCH.includes(positionId)) {
+            // You can't swap a bench spirit with another bench spirit.
+            return;
+          }
           const spiritToSwap = battlePositionsMap.get(swapPositionId) ?? {} as Spirit;
           const spiritToSwapWith = battlePositionsMap.get(positionId) ?? {} as Spirit;
           const newBattlePositionsMap = new Map(battlePositionsMap);
@@ -114,9 +117,10 @@ export default function BattleScreen() {
           return;
         }
       }
+    } else {
+      setSpiritCardModal(spirit);
+      return;
     }
-    setSpiritCardModal(spirit);
-    return;
   };
 
   return (
