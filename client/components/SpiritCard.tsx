@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, ImageBackground } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Spirit } from '@/models/Spirit';
 
 interface SpiritCardProps {
@@ -82,12 +83,16 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
                 />
               </TouchableOpacity>
 
-              <View style={styles.bannerContainer}>
-                <Text style={styles.bannerText}>
-                  Jelly Creature {'•'} HT: {spiritData.height}cm {'•'} WT: {spiritData.weight}kg
-                </Text>
-              </View>
-            </View>
+            <LinearGradient
+              colors={['#C0C0C0', '#FFFFFF', '#A9A9A9']} // Silver gradient colors
+              start={{ x: 0, y: 0 }} // Top-left
+              end={{ x: 1, y: 1 }} // Bottom-right
+              style={styles.bannerContainer}>
+              <Text style={styles.bannerText}>
+                Jelly Creature {'•'} HT: {spiritData.height}cm {'•'} WT: {spiritData.weight}kg
+              </Text>
+            </LinearGradient>
+          </View>
             <View style={styles.spiritMoves}>
               <View style={styles.spiritMovesRow}>
                 <Text style={styles.spiritMovesTitle}>Punch</Text>
@@ -178,6 +183,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     borderWidth: cardWidth * .004,
     borderColor: 'white',
+    marginBottom: cardWidth * .01,
   },
   overlayContainer: {
     position: 'absolute',
@@ -196,14 +202,16 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   bannerContainer: {
-    width: '100%',
-    backgroundColor: '#CC5500',
+    width: '95%',
+    backgroundColor: '#424949',
     padding: cardWidth * .01,
     alignItems: 'center',
+    borderColor: 'black',
+    borderWidth: cardWidth * .004,
   },
   bannerText: {
     fontSize: cardWidth * .025,
-    color: 'white',
+    color: 'black',
     textAlign: 'left',
     fontFamily: 'LibreBaskerville-Regular',
   },
