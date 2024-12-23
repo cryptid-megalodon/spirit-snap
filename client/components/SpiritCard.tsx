@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Modal, View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, ImageBackground } from 'react-native';
 import { Spirit } from '@/models/Spirit';
 
 interface SpiritCardProps {
@@ -9,13 +9,23 @@ interface SpiritCardProps {
 }
 
 const typeImages: { [key: string]: any } = {
-  Fire: require('@/assets/images/fire.png'),
-  Water: require('@/assets/images/water.png'),
-  Rock: require('@/assets/images/rock.png'),
-  Grass: require('@/assets/images/grass.png'),
-  Psychic: require('@/assets/images/psychic.png'),
-  Electric: require('@/assets/images/electric.png'),
-  Fighting: require('@/assets/images/fighting.png'),
+  Fire: require('@/assets/images/typeIcons/fire.png'),
+  Water: require('@/assets/images/typeIcons/water.png'),
+  Rock: require('@/assets/images/typeIcons/rock.png'),
+  Grass: require('@/assets/images/typeIcons/grass.png'),
+  Psychic: require('@/assets/images/typeIcons/psychic.png'),
+  Electric: require('@/assets/images/typeIcons/electric.png'),
+  Fighting: require('@/assets/images/typeIcons/fighting.png'),
+};
+
+const typeBackgrounds: { [key: string]: any } = {
+  Fire: require('@/assets/images/background/fire-background.jpeg'),
+  Water: require('@/assets/images/background/water-background.jpeg'),
+  Rock: require('@/assets/images/background/rock-background.jpeg'),
+  Grass: require('@/assets/images/background/grass-background.jpeg'),
+  Psychic: require('@/assets/images/background/psychic-background.jpeg'),
+  Electric: require('@/assets/images/background/electric-background.jpeg'),
+  Fighting: require('@/assets/images/background/fighting-background.jpeg'),
 };
 
 const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose }) => {
@@ -36,7 +46,12 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
   return (
     <Modal visible={visible} transparent={true} animationType="slide">
       <View style={styles.modalContainer}>
-          <View style={styles.spiritCard}>
+          <ImageBackground 
+            source={typeBackgrounds[spiritData.primaryType]}
+            resizeMode="cover"
+            blurRadius={10}
+            style={styles.spiritCard}>
+              <View style={styles.overlay} />
             <View style={styles.cardHeader}>
               <Text style={styles.spiritName}>{spiritData.name}</Text>
               <Image
@@ -87,7 +102,7 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
             <View style={styles.cardFooter}>
               <Text style={styles.footerText}>© 2024 Spirit Snap — Created: date</Text>
             </View>
-          </View>
+          </ImageBackground>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
           <Text>Close</Text>
         </TouchableOpacity>
@@ -115,13 +130,16 @@ const styles = StyleSheet.create({
   spiritCard: {
     width: cardWidth,
     height: cardHeight,
-    borderColor: 'orange',
+    borderColor: 'silver',
     borderRadius: 10,
     borderWidth: cardWidth * .035,
-    backgroundColor: '#d3d3d3', // Inner container background color
     alignItems: 'center',
     overflow: 'hidden',
     justifyContent: 'center',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject, // Ensures the overlay covers the entire card
+    backgroundColor: 'rgba(255, 255, 255, 0.09)', // Semi-transparent white for a pale effect
   },
   cardHeader: {
     width: '100%',
@@ -131,7 +149,7 @@ const styles = StyleSheet.create({
   },
   spiritName: {
     fontSize: cardWidth * .045,
-    color: '#000',
+    color: 'white',
     textAlign: 'left',
     alignSelf: 'stretch',
     marginTop: cardWidth * .02,
@@ -159,7 +177,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: 'stretch',
     borderWidth: cardWidth * .004,
-    borderColor: 'black',
+    borderColor: 'white',
   },
   overlayContainer: {
     position: 'absolute',
@@ -205,7 +223,7 @@ const styles = StyleSheet.create({
   },
   spiritMovesTitle: {
     fontSize: cardWidth * .035,
-    color: 'black',
+    color: 'white',
     textAlign: 'center',
     fontFamily: 'LibreBaskerville-Regular',
   },
@@ -218,14 +236,14 @@ const styles = StyleSheet.create({
   },
   spiritDescription: {
     fontSize: cardWidth * .03,
-    color: 'black',
+    color: 'white',
     textAlign: 'center',
     padding: cardWidth * .02,
     fontFamily: 'LibreBaskerville-Italic',
   },
   footerText: {
     fontSize: cardWidth * .02,
-    color: 'black',
+    color: 'white',
   },
   closeButton: {
     padding: 10,
