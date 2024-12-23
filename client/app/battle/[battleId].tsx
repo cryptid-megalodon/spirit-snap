@@ -87,37 +87,45 @@ export default function BattleScreen() {
     setSwapPositionId(undefined);
   };
 
-  const handleSpiritClick = (spirit: Spirit, positionId: Position) => {
-    if (swapMode) {
-      if (swapPositionId === undefined) {
-        if (BOTTOM_BENCH.includes(positionId)) {
-          // Handle first swap click.
-          setSwapPositionId(positionId);
-          return;
-        }
-      } else {
-        // Handle second swap click.
-        if (swapPositionId === positionId) {
-          // Undo swap selection.
-          setSwapPositionId(undefined);
-          return;
-        } else {
-          // Execute swap.
-          if (BOTTOM_BENCH.includes(positionId)) {
-            // You can't swap a bench spirit with another bench spirit.
-            return;
-          }
-          const spiritToSwap = battlePositionsMap.get(swapPositionId) ?? {} as Spirit;
-          const spiritToSwapWith = battlePositionsMap.get(positionId) ?? {} as Spirit;
-          const newBattlePositionsMap = new Map(battlePositionsMap);
-          newBattlePositionsMap.set(swapPositionId, spiritToSwapWith);
-          newBattlePositionsMap.set(positionId, spiritToSwap);
-          setBattlePositionsMap(newBattlePositionsMap);
-          clearSwapMode();
-          return;
-        }
+  const handleSwapClick = (spirit: Spirit, positionId: Position) => {
+    if (swapPositionId === undefined) {
+      if (BOTTOM_BENCH.includes(positionId)) {
+        // Handle first swap click.
+        setSwapPositionId(positionId);
+        return;
       }
     } else {
+      // Handle second swap click.
+      if (swapPositionId === positionId) {
+        // Undo swap selection.
+        setSwapPositionId(undefined);
+        return;
+      } else {
+        // Execute swap.
+        if (BOTTOM_BENCH.includes(positionId)) {
+          // You can't swap a bench spirit with another bench spirit.
+          return;
+        }
+        const spiritToSwap = battlePositionsMap.get(swapPositionId) ?? {} as Spirit;
+        const spiritToSwapWith = battlePositionsMap.get(positionId) ?? {} as Spirit;
+        const newBattlePositionsMap = new Map(battlePositionsMap);
+        newBattlePositionsMap.set(swapPositionId, spiritToSwapWith);
+        newBattlePositionsMap.set(positionId, spiritToSwap);
+        setBattlePositionsMap(newBattlePositionsMap);
+        clearSwapMode();
+        return;
+      }
+    }
+  };
+
+  const handleSpiritClick = (spirit: Spirit, positionId: Position) => {
+    if (swapMode) {
+      handleSwapClick(spirit, positionId);
+    } else if (positionId === Position.TOP_FRONTLINE_CENTER) {
+      // Select Attack Click
+      setModalVisible(true);
+    } else {
+      // Inspect Spirit Click
       setSpiritCardModal(spirit);
       return;
     }
@@ -144,7 +152,7 @@ export default function BattleScreen() {
         </View>
         <View style={styles.middleRowFrontLine}>
           <SpiritBattleCard spirit={battlePositionsMap.get(Position.TOP_FRONTLINE_CENTER) ?? {} as Spirit} />
-            <Pressable onPress={() => setModalVisible(true)}>
+            <Pressable onPress={() => handleSpiritClick(battlePositionsMap.get(Position.BOTTOM_FRONTLINE_CENTER) ?? {} as Spirit, Position.BOTTOM_FRONTLINE_CENTER)}>
               <SpiritBattleCard spirit={battlePositionsMap.get(Position.BOTTOM_FRONTLINE_CENTER) ?? {} as Spirit} />
             </Pressable>
         </View>
