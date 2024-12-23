@@ -25,7 +25,9 @@ enum Position {
   BOTTOM_BENCH_RIGHT = 'Bottom-Bench-Right'
 }
 
+const TOP_BENCH = [Position.TOP_BENCH_LEFT, Position.TOP_BENCH_CENTER, Position.TOP_BENCH_RIGHT]
 const BOTTOM_BENCH = [Position.BOTTOM_BENCH_LEFT, Position.BOTTOM_BENCH_CENTER, Position.BOTTOM_BENCH_RIGHT]
+const BENCH_POSITIONS = [...TOP_BENCH, ...BOTTOM_BENCH]
 
 const initBattlePositionMap = (playerOneTeam: Spirit[], playerTwoTeam: Spirit[]): Map<Position, Spirit> => {
   return new Map<Position, Spirit>([
@@ -131,17 +133,29 @@ export default function BattleScreen() {
     }
   };
 
+  function ClickableSpirit({ positionId }: { positionId: Position }) {
+    const spirit = battlePositionsMap.get(positionId) ?? {} as Spirit;
+    return (
+      <Pressable
+        onPress={() => handleSpiritClick(spirit, positionId)}
+        style={swapPositionId === positionId ? styles.swapSelected : {}}
+      >
+        {BENCH_POSITIONS.includes(positionId) ? <SpiritBenchCard spirit={spirit} /> : <SpiritBattleCard spirit={spirit} />}
+      </Pressable>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.benchContainer}>
-        <SpiritBenchCard spirit={battlePositionsMap.get(Position.TOP_BENCH_LEFT) ?? {} as Spirit} />
-        <SpiritBenchCard spirit={battlePositionsMap.get(Position.TOP_BENCH_CENTER) ?? {} as Spirit} />
-        <SpiritBenchCard spirit={battlePositionsMap.get(Position.TOP_BENCH_RIGHT) ?? {} as Spirit} />
+        <ClickableSpirit positionId={Position.TOP_BENCH_LEFT} />
+        <ClickableSpirit positionId={Position.TOP_BENCH_CENTER} />
+        <ClickableSpirit positionId={Position.TOP_BENCH_RIGHT} />
       </View>
 
       <View style={styles.middleRowContainer}>
-        <SpiritBattleCard spirit={battlePositionsMap.get(Position.TOP_MIDDLE_LEFT) ?? {} as Spirit} />
-        <SpiritBattleCard spirit={battlePositionsMap.get(Position.TOP_MIDDLE_RIGHT) ?? {} as Spirit} />
+        <ClickableSpirit positionId={Position.TOP_MIDDLE_LEFT} />
+        <ClickableSpirit positionId={Position.TOP_MIDDLE_RIGHT} />
       </View>
 
       <View style={styles.frontLineContainer}>
@@ -151,10 +165,8 @@ export default function BattleScreen() {
             </TouchableOpacity>
         </View>
         <View style={styles.middleRowFrontLine}>
-          <SpiritBattleCard spirit={battlePositionsMap.get(Position.TOP_FRONTLINE_CENTER) ?? {} as Spirit} />
-            <Pressable onPress={() => handleSpiritClick(battlePositionsMap.get(Position.BOTTOM_FRONTLINE_CENTER) ?? {} as Spirit, Position.BOTTOM_FRONTLINE_CENTER)}>
-              <SpiritBattleCard spirit={battlePositionsMap.get(Position.BOTTOM_FRONTLINE_CENTER) ?? {} as Spirit} />
-            </Pressable>
+          <ClickableSpirit positionId={Position.TOP_FRONTLINE_CENTER} />
+          <ClickableSpirit positionId={Position.BOTTOM_FRONTLINE_CENTER} />
         </View>
         <View style={styles.middleRowButtonColumn}>
           { swapMode ? (
@@ -170,24 +182,14 @@ export default function BattleScreen() {
       </View>
 
       <View style={styles.bottomRow}>
-        <Pressable onPress={() => handleSpiritClick(battlePositionsMap.get(Position.BOTTOM_MIDDLE_LEFT) ?? {} as Spirit, Position.BOTTOM_MIDDLE_LEFT)} style={swapPositionId === Position.BOTTOM_MIDDLE_LEFT ? styles.swapSelected : {}}>
-          <SpiritBattleCard spirit={battlePositionsMap.get(Position.BOTTOM_MIDDLE_LEFT) ?? {} as Spirit} />
-        </Pressable>
-        <Pressable onPress={() => handleSpiritClick(battlePositionsMap.get(Position.BOTTOM_MIDDLE_RIGHT) ?? {} as Spirit, Position.BOTTOM_MIDDLE_RIGHT)} style={swapPositionId === Position.BOTTOM_MIDDLE_RIGHT ? styles.swapSelected : {}}>
-          <SpiritBattleCard spirit={battlePositionsMap.get(Position.BOTTOM_MIDDLE_RIGHT) ?? {} as Spirit} />
-        </Pressable>
+        <ClickableSpirit positionId={Position.BOTTOM_MIDDLE_LEFT} />
+        <ClickableSpirit positionId={Position.BOTTOM_MIDDLE_RIGHT} />
       </View>
 
       <View style={styles.benchContainer}>
-        <Pressable onPress={() => handleSpiritClick(battlePositionsMap.get(Position.BOTTOM_BENCH_LEFT) ?? {} as Spirit, Position.BOTTOM_BENCH_LEFT)} style={swapPositionId === Position.BOTTOM_BENCH_LEFT ? styles.swapSelected : {}}>
-          <SpiritBenchCard spirit={battlePositionsMap.get(Position.BOTTOM_BENCH_LEFT) ?? {} as Spirit} />
-        </Pressable>
-        <Pressable onPress={() => handleSpiritClick(battlePositionsMap.get(Position.BOTTOM_BENCH_CENTER) ?? {} as Spirit, Position.BOTTOM_BENCH_CENTER)} style={swapPositionId === Position.BOTTOM_BENCH_CENTER ? styles.swapSelected : {}}>
-          <SpiritBenchCard spirit={battlePositionsMap.get(Position.BOTTOM_BENCH_CENTER) ?? {} as Spirit} />
-        </Pressable>
-        <Pressable onPress={() => handleSpiritClick(battlePositionsMap.get(Position.BOTTOM_BENCH_RIGHT) ?? {} as Spirit, Position.BOTTOM_BENCH_RIGHT)} style={swapPositionId === Position.BOTTOM_BENCH_RIGHT ? styles.swapSelected : {}}>
-          <SpiritBenchCard spirit={battlePositionsMap.get(Position.BOTTOM_BENCH_RIGHT) ?? {} as Spirit} />
-        </Pressable>
+        <ClickableSpirit positionId={Position.BOTTOM_BENCH_LEFT} />
+        <ClickableSpirit positionId={Position.BOTTOM_BENCH_CENTER} />
+        <ClickableSpirit positionId={Position.BOTTOM_BENCH_RIGHT} />
       </View>
 
       {/* Fighting Move Modal */}
