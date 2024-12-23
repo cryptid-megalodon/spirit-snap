@@ -133,6 +133,16 @@ export default function BattleScreen() {
     }
   };
 
+  const rotateField = () => {
+    const frontlineSpirit = battlePositionsMap.get(Position.BOTTOM_FRONTLINE_CENTER) ?? {} as Spirit;
+    const middleLeftSpirit = battlePositionsMap.get(Position.BOTTOM_MIDDLE_LEFT) ?? {} as Spirit;
+    const middleRightSpirit = battlePositionsMap.get(Position.BOTTOM_MIDDLE_RIGHT) ?? {} as Spirit;
+    battlePositionsMap.set(Position.BOTTOM_FRONTLINE_CENTER, middleLeftSpirit);
+    battlePositionsMap.set(Position.BOTTOM_MIDDLE_LEFT, middleRightSpirit);
+    battlePositionsMap.set(Position.BOTTOM_MIDDLE_RIGHT, frontlineSpirit);
+    setBattlePositionsMap(new Map(battlePositionsMap));
+  }
+
   function ClickableSpirit({ positionId }: { positionId: Position }) {
     const spirit = battlePositionsMap.get(positionId) ?? {} as Spirit;
     return (
@@ -158,17 +168,17 @@ export default function BattleScreen() {
         <ClickableSpirit positionId={Position.TOP_MIDDLE_RIGHT} />
       </View>
 
-      <View style={styles.frontLineContainer}>
-        <View style={styles.middleRowButtonColumn}>
+      <View style={styles.centerArenaContainer}>
+        <View style={styles.centerArenaButtonColumn}>
             <TouchableOpacity style={styles.actionButton} onPress={() => Alert.alert("Surrendering!")}>
                 <Text style={styles.actionButtonText}>Surrender</Text>
             </TouchableOpacity>
         </View>
-        <View style={styles.middleRowFrontLine}>
+        <View style={styles.centerArenaFrontlineColumn}>
           <ClickableSpirit positionId={Position.TOP_FRONTLINE_CENTER} />
           <ClickableSpirit positionId={Position.BOTTOM_FRONTLINE_CENTER} />
         </View>
-        <View style={styles.middleRowButtonColumn}>
+        <View style={styles.centerArenaButtonColumn}>
           { swapMode ? (
             <Pressable style={[styles.actionButton, { backgroundColor: 'red' }]} onPress={clearSwapMode}>
               <Text style={styles.actionButtonText}>Cancel</Text>
@@ -183,6 +193,9 @@ export default function BattleScreen() {
 
       <View style={styles.bottomRow}>
         <ClickableSpirit positionId={Position.BOTTOM_MIDDLE_LEFT} />
+        <Pressable style={styles.rotateButton} onPress={rotateField}>
+          <Text>R</Text>
+        </Pressable>
         <ClickableSpirit positionId={Position.BOTTOM_MIDDLE_RIGHT} />
       </View>
 
@@ -266,21 +279,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center',
   },
-  frontLineContainer: {
+  centerArenaContainer: {
     flex: 2, // 1/2 of the screen height
     flexDirection: 'row',
   },
-  middleRowFrontLine: {
+  centerArenaFrontlineColumn: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-evenly',
     alignItems: 'center',
   },
-  middleRowButtonColumn: {
+  centerArenaButtonColumn: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-end',
     alignItems: 'center',
+  },
+  rotateButton: {
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   bottomRow: {
     flex: 1, // 1/4 of the screen height
