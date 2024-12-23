@@ -123,7 +123,7 @@ export default function BattleScreen() {
   const handleSpiritClick = (spirit: Spirit, positionId: Position) => {
     if (swapMode) {
       handleSwapClick(spirit, positionId);
-    } else if (positionId === Position.TOP_FRONTLINE_CENTER) {
+    } else if (positionId === Position.BOTTOM_FRONTLINE_CENTER) {
       // Select Attack Click
       setModalVisible(true);
     } else {
