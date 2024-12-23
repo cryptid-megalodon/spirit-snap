@@ -41,7 +41,16 @@
         }
       ],
       "expo-router",
-      "expo-font"
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/LibreBaskerville-Regular.ttf",
+            "./assets/fonts/LibreBaskerville-Italic.ttf",
+            "./assets/fonts/LibreBaskerville-Bold.ttf"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
