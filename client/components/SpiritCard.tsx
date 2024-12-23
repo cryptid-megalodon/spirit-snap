@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   overlayContainer: {
     position: 'absolute',
-    bottom: cardWidth * .01,
+    bottom: cardWidth * .06,
     right: cardWidth * .01,
     width: cardWidth * .16,
     height: cardWidth * .16,
