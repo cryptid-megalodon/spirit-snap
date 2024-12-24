@@ -6,7 +6,6 @@ import { useTeams } from '@/contexts/TeamContext';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Modal, StyleSheet, Dimensions, Text , Alert, Pressable, TouchableOpacity } from 'react-native';
-import { Team } from '@/models/Team';
 import { Battle } from '@/models/Battle';
 import { Spirit } from '@/models/Spirit';
 
@@ -26,23 +25,28 @@ enum Position {
 }
 
 const TOP_BENCH = [Position.TOP_BENCH_LEFT, Position.TOP_BENCH_CENTER, Position.TOP_BENCH_RIGHT]
+const TOP_MIDDLE = [Position.TOP_MIDDLE_LEFT, Position.TOP_MIDDLE_RIGHT]
 const BOTTOM_BENCH = [Position.BOTTOM_BENCH_LEFT, Position.BOTTOM_BENCH_CENTER, Position.BOTTOM_BENCH_RIGHT]
+const BOTTOM_MIDDLE = [Position.BOTTOM_MIDDLE_LEFT, Position.BOTTOM_MIDDLE_RIGHT]
 const BENCH_POSITIONS = [...TOP_BENCH, ...BOTTOM_BENCH]
 
-const initBattlePositionMap = (playerOneTeam: Spirit[], playerTwoTeam: Spirit[]): Map<Position, Spirit> => {
+const TOP_ARENA = [Position.TOP_FRONTLINE_CENTER, ...TOP_MIDDLE, ...TOP_BENCH]
+const BOTTOM_ARENA = [Position.BOTTOM_FRONTLINE_CENTER, ...BOTTOM_MIDDLE, ...BOTTOM_BENCH]
+
+const initBattlePositionMap = (bottomArenaTeam: Spirit[], topArenaTeam: Spirit[]): Map<Position, Spirit> => {
   return new Map<Position, Spirit>([
-    [Position.TOP_BENCH_LEFT, playerTwoTeam[3]],
-    [Position.TOP_BENCH_CENTER, playerTwoTeam[4]],
-    [Position.TOP_BENCH_RIGHT, playerTwoTeam[5]],
-    [Position.TOP_MIDDLE_LEFT, playerTwoTeam[1]],
-    [Position.TOP_MIDDLE_RIGHT, playerTwoTeam[2]],
-    [Position.TOP_FRONTLINE_CENTER, playerTwoTeam[0]],
-    [Position.BOTTOM_FRONTLINE_CENTER, playerOneTeam[0]],
-    [Position.BOTTOM_MIDDLE_LEFT, playerOneTeam[1]],
-    [Position.BOTTOM_MIDDLE_RIGHT, playerOneTeam[2]],
-    [Position.BOTTOM_BENCH_LEFT, playerOneTeam[3]],
-    [Position.BOTTOM_BENCH_CENTER, playerOneTeam[4]],
-    [Position.BOTTOM_BENCH_RIGHT, playerOneTeam[5]]
+    [Position.TOP_BENCH_LEFT, topArenaTeam[3]],
+    [Position.TOP_BENCH_CENTER, topArenaTeam[4]],
+    [Position.TOP_BENCH_RIGHT, topArenaTeam[5]],
+    [Position.TOP_MIDDLE_LEFT, topArenaTeam[1]],
+    [Position.TOP_MIDDLE_RIGHT, topArenaTeam[2]],
+    [Position.TOP_FRONTLINE_CENTER, topArenaTeam[0]],
+    [Position.BOTTOM_FRONTLINE_CENTER, bottomArenaTeam[0]],
+    [Position.BOTTOM_MIDDLE_LEFT, bottomArenaTeam[1]],
+    [Position.BOTTOM_MIDDLE_RIGHT, bottomArenaTeam[2]],
+    [Position.BOTTOM_BENCH_LEFT, bottomArenaTeam[3]],
+    [Position.BOTTOM_BENCH_CENTER, bottomArenaTeam[4]],
+    [Position.BOTTOM_BENCH_RIGHT, bottomArenaTeam[5]]
   ]);
 }
 
@@ -70,9 +74,8 @@ export default function BattleScreen() {
     throw new Error('Player Two Team not found');
   }
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [playerOneTeam, setPlayerOneTeam] = useState<Team>(teamOne);
-  const [playerTwoTeam, setPlayerTwoTeam] = useState<Team>(teamTwo);
+  const [attackModalVisible, setAttackModalVisible] = useState(false);
+  const [nextTurnModalVisible, setNextTurnModalVisible] = useState(false);
   const [currentBattle, setCurrentBattle] = useState<Battle>(battle);
   const [swapMode, setSwapMode] = useState(false);
   const [spiritCardModal, setSpiritCardModal] = useState<Spirit | null>(null);
@@ -81,13 +84,32 @@ export default function BattleScreen() {
 
   const handleSelectMove = (move: string) => {
     console.log(`Selected move: ${move}`);
-    setModalVisible(false);
+    setAttackModalVisible(false);
+    nextTurn();
   };
 
   const clearSwapMode = () => {
     setSwapMode(false);
     setSwapPositionId(undefined);
   };
+
+  const switchSides = () => {
+    const topArenaSpirits = TOP_ARENA.map(position => battlePositionsMap.get(position) as Spirit);
+    const bottomArenaSpirits = BOTTOM_ARENA.map(position => battlePositionsMap.get(position) as Spirit);
+    setBattlePositionsMap(initBattlePositionMap(topArenaSpirits, bottomArenaSpirits));
+  };
+
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const nextTurn = async () => {
+    await sleep(500);
+    setNextTurnModalVisible(true);
+    const currentBattleCopy = { ...currentBattle };
+    currentBattleCopy.currentTurnUserId = currentBattle.currentTurnUserId === 'playerOne' ? 'playerTwo' : 'playerOne';
+    setCurrentBattle(currentBattleCopy);
+    switchSides();
+  };
+
 
   const handleSwapClick = (spirit: Spirit, positionId: Position) => {
     if (swapPositionId === undefined) {
@@ -115,6 +137,7 @@ export default function BattleScreen() {
         newBattlePositionsMap.set(positionId, spiritToSwap);
         setBattlePositionsMap(newBattlePositionsMap);
         clearSwapMode();
+        nextTurn();
         return;
       }
     }
@@ -125,7 +148,7 @@ export default function BattleScreen() {
       handleSwapClick(spirit, positionId);
     } else if (positionId === Position.BOTTOM_FRONTLINE_CENTER) {
       // Select Attack Click
-      setModalVisible(true);
+      setAttackModalVisible(true);
     } else {
       // Inspect Spirit Click
       setSpiritCardModal(spirit);
@@ -206,7 +229,7 @@ export default function BattleScreen() {
       </View>
 
       {/* Fighting Move Modal */}
-      <Modal visible={modalVisible} transparent={true} animationType="fade">
+      <Modal visible={attackModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.menu}>
             <Text style={styles.menuTitle}>Select a Move</Text>
@@ -228,7 +251,7 @@ export default function BattleScreen() {
                 </Pressable>
               </View>
             </View>
-            <Pressable style={[styles.actionButton, { backgroundColor: 'red' }]} onPress={() => setModalVisible(false)}>
+            <Pressable style={[styles.actionButton, { backgroundColor: 'red' }]} onPress={() => setAttackModalVisible(false)}>
               <Text style={styles.actionButtonText}>Cancel</Text>
             </Pressable>
           </View>
@@ -242,6 +265,23 @@ export default function BattleScreen() {
           spiritData={spiritCardModal}
           onClose={() => setSpiritCardModal(null)}
         />
+      }
+      {/* Next Turn Modal */}
+      { nextTurnModalVisible &&
+        <Modal visible={true} transparent={true} animationType="fade">
+          <View style={styles.modalContainer}>
+            <View style={styles.menu}>
+              <Text style={styles.menuTitle}>Player's Turn</Text>
+              <Text>It's {currentBattle.currentTurnUserId}'s turn!</Text>
+              <Pressable 
+                style={[styles.actionButton, { backgroundColor: 'white', marginTop: 20 }]} 
+                onPress={() => setNextTurnModalVisible(false)}
+              >
+                <Text style={[styles.actionButtonText, { color: '#007AFF' }]}>Start Turn</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       }
     </View>
   );
