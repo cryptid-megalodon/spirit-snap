@@ -202,7 +202,6 @@ function TeamEditorCarousel({ setOpenTeamEditor, selectedSpirit }: TeamEditorCar
       } else {
         // Add to end of team
         updatedSpirits.push(selectedSpirit);
-        console.log('Updated spirits:', updatedSpirits);
       }
     }
     setEditTeam({

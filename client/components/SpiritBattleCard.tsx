@@ -11,7 +11,6 @@ const BattleSpiritCard: React.FC<BattleSpiritCardProps> = ({ spirit }) => {
   const displayType = (primaryType: string, secondaryType: string): string => {
     return secondaryType === 'None' ? primaryType : `${primaryType}/${secondaryType}`;
   };
-  console.log('Spirit:', spirit);
 
   return (
     <View style={styles.container}>
