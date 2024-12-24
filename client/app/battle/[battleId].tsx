@@ -83,7 +83,6 @@ export default function BattleScreen() {
   const [battlePositionsMap, setBattlePositionsMap] = useState<Map<Position, Spirit>>(initBattlePositionMap(teamOne.spirits, teamTwo.spirits));
 
   const handleSelectMove = (move: string) => {
-    console.log(`Selected move: ${move}`);
     setAttackModalVisible(false);
     nextTurn();
   };
@@ -93,21 +92,32 @@ export default function BattleScreen() {
     setSwapPositionId(undefined);
   };
 
-  const switchSides = () => {
-    const topArenaSpirits = TOP_ARENA.map(position => battlePositionsMap.get(position) as Spirit);
-    const bottomArenaSpirits = BOTTOM_ARENA.map(position => battlePositionsMap.get(position) as Spirit);
-    setBattlePositionsMap(initBattlePositionMap(topArenaSpirits, bottomArenaSpirits));
+  const switchSides = (updatedBattlePositionsMap?: Map<Position, Spirit>) => {
+    var newBattlePositionsMap = new Map(battlePositionsMap);
+    if (updatedBattlePositionsMap) {
+      newBattlePositionsMap = new Map(updatedBattlePositionsMap);
+    }
+    console.log("Name:", newBattlePositionsMap.get(Position.BOTTOM_MIDDLE_RIGHT)?.name);
+    const topArenaSpirits = TOP_ARENA.map(position => newBattlePositionsMap.get(position) as Spirit);
+    const bottomArenaSpirits = BOTTOM_ARENA.map(position => newBattlePositionsMap.get(position) as Spirit);
+    TOP_ARENA.forEach((position, index) => {
+      newBattlePositionsMap.set(position, bottomArenaSpirits[index]);
+    });
+    BOTTOM_ARENA.forEach((position, index) => {
+      newBattlePositionsMap.set(position, topArenaSpirits[index]);
+    });
+    setBattlePositionsMap(newBattlePositionsMap);
   };
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const nextTurn = async () => {
+  const nextTurn = async (battlePositionsMap?: Map<Position, Spirit>) => {
     await sleep(500);
     setNextTurnModalVisible(true);
     const currentBattleCopy = { ...currentBattle };
     currentBattleCopy.currentTurnUserId = currentBattle.currentTurnUserId === 'playerOne' ? 'playerTwo' : 'playerOne';
     setCurrentBattle(currentBattleCopy);
-    switchSides();
+    switchSides(battlePositionsMap);
   };
 
 
@@ -137,7 +147,7 @@ export default function BattleScreen() {
         newBattlePositionsMap.set(positionId, spiritToSwap);
         setBattlePositionsMap(newBattlePositionsMap);
         clearSwapMode();
-        nextTurn();
+        nextTurn(newBattlePositionsMap);
         return;
       }
     }
@@ -257,7 +267,6 @@ export default function BattleScreen() {
           </View>
         </View>
       </Modal>
-
       {/* Spirit Card Modal */}
       { spiritCardModal &&
         <SpiritCard
@@ -271,8 +280,7 @@ export default function BattleScreen() {
         <Modal visible={true} transparent={true} animationType="fade">
           <View style={styles.modalContainer}>
             <View style={styles.menu}>
-              <Text style={styles.menuTitle}>Player's Turn</Text>
-              <Text>It's {currentBattle.currentTurnUserId}'s turn!</Text>
+              <Text style={styles.menuTitle}>{currentBattle.currentTurnUserId}'s Turn</Text>
               <Pressable 
                 style={[styles.actionButton, { backgroundColor: 'white', marginTop: 20 }]} 
                 onPress={() => setNextTurnModalVisible(false)}
