@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react'
-import { Spirit, SpiritRawData, isCompleteSpirit } from '@/models/Spirit'
+import { Spirit, SpiritRawData, isCompleteSpirit, convertSpiritRawDataToSpirit } from '@/models/Spirit'
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 
@@ -64,7 +64,7 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
         return {} as Spirit;
       }
       if (isCompleteSpirit(spiritRawData)) {
-        return spiritRawData;
+        return convertSpiritRawDataToSpirit(spiritRawData);
       } else {
         console.log('Incomplete spirit data.');
         return {} as Spirit;
@@ -101,13 +101,13 @@ export function SpiritProvider({ children }: { children: React.ReactNode }) {
         console.log('No spirits found.');
         return [];
       }
-      return spiritsRawData.filter(isCompleteSpirit)
+      const validSpiritData = spiritsRawData.filter(isCompleteSpirit)
+      return validSpiritData.map(convertSpiritRawDataToSpirit);
     } catch (error) {
       console.error('Error fetching spirts:', error);
       return [];
     }
   }
-
   return (
     <SpiritContext.Provider value={{ createSpirit, getSpirit, getSpirits, getUserSpirits }}>
       {children}
