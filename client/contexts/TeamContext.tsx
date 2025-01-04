@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Team } from '../models/Team';
 
@@ -24,6 +24,7 @@ export function useTeams() {
 export function TeamsProvider({ children }: { children: React.ReactNode }) {
   const [teams, setTeams] = useState<Map<string, Team>>(new Map());
   const [editTeamId, setEditTeamId] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     loadTeams();
@@ -36,40 +37,41 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
       const teamsMap = new Map<string, Team>(teamsArray.map((team: Team) => [team.id, team]));
       setTeams(teamsMap);
     }
+    setIsLoaded(true);
   };
 
-  const addOrUpdateTeam = async (newTeam: Team) => {
+  const getTeam = useCallback((teamId: string) => {
+    return teams.get(teamId);
+  }, [teams]);
+
+  const addOrUpdateTeam = useCallback(async (newTeam: Team) => {
     const updatedTeams = new Map(teams);
     updatedTeams.set(newTeam.id, newTeam);
     setTeams(updatedTeams);
     
     const teamsArray = Array.from(updatedTeams.values());
     await AsyncStorage.setItem('teams', JSON.stringify(teamsArray));
-  };
+  }, [teams]);
 
-  const deleteTeam = async (teamId: string) => {
+  const deleteTeam = useCallback(async (teamId: string) => {
     const updatedTeams = new Map(teams);
     updatedTeams.delete(teamId);
     setTeams(updatedTeams);
 
     const teamsArray = Array.from(updatedTeams.values());
     await AsyncStorage.setItem('teams', JSON.stringify(teamsArray));
-  };
+  }, [teams]);
 
-  const getTeam = (teamId: string) => {
-    return teams.get(teamId);
-  };
-
-  const getTeams = () => {
+  const getTeams = useCallback(() => {
     return Array.from(teams.values());
-  };
+  }, [teams]);
 
   const setEditTeam = (teamId: string | null) => {
     setEditTeamId(teamId);
   };
 
   // Fetches the team designated for editing or returns a new team if no team is designated or the team ID is missing.
-  const getEditTeam = () => {
+  const getEditTeam = useCallback(() => {
     if (editTeamId  !== null) {
       const team = teams.get(editTeamId);
       if (team) {
@@ -82,10 +84,22 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
       spirits: [],
     };
     return editTeam;
-  };
+  }, [editTeamId, teams]);
 
+  if (!isLoaded) {
+    return null;
+  }
+
+  const value = {
+    addOrUpdateTeam,
+    getTeam,
+    getTeams,
+    setEditTeam,
+    getEditTeam,
+    deleteTeam,
+  };
   return (
-    <TeamsContext.Provider value={{ addOrUpdateTeam, getTeam, getTeams, setEditTeam, getEditTeam, deleteTeam }}>
+    <TeamsContext.Provider value={value}>
       {children}
     </TeamsContext.Provider>
   );

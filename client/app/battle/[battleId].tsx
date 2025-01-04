@@ -2,124 +2,52 @@ import SpiritBattleCard from '@/components/SpiritBattleCard';
 import SpiritBenchCard from '@/components/SpiritBenchCard';
 import SpiritCard from '@/components/SpiritCard';
 import { useBattle } from '@/contexts/BattleContext';
-import { useTeams } from '@/contexts/TeamContext';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Modal, StyleSheet, Dimensions, Text , Alert, Pressable, TouchableOpacity } from 'react-native';
-import { Battle } from '@/models/Battle';
+import { Battle, Position, BOTTOM_BENCH, BENCH_POSITIONS } from '@/models/Battle';
 import { Spirit } from '@/models/Spirit';
-
-enum Position {
-  TOP_BENCH_LEFT = 'Top-Bench-Left',
-  TOP_BENCH_CENTER = 'Top-Bench-Center',
-  TOP_BENCH_RIGHT = 'Top-Bench-Right',
-  TOP_MIDDLE_LEFT = 'Top-Middle-Left',
-  TOP_MIDDLE_RIGHT = 'Top-Middle-Right',
-  TOP_FRONTLINE_CENTER = 'Top-Frontline-Center',
-  BOTTOM_FRONTLINE_CENTER = 'Bottom-Frontline-Center',
-  BOTTOM_MIDDLE_LEFT = 'Bottom-Middle-Left',
-  BOTTOM_MIDDLE_RIGHT = 'Bottom-Middle-Right',
-  BOTTOM_BENCH_LEFT = 'Bottom-Bench-Left',
-  BOTTOM_BENCH_CENTER = 'Bottom-Bench-Center',
-  BOTTOM_BENCH_RIGHT = 'Bottom-Bench-Right'
-}
-
-const TOP_BENCH = [Position.TOP_BENCH_LEFT, Position.TOP_BENCH_CENTER, Position.TOP_BENCH_RIGHT]
-const TOP_MIDDLE = [Position.TOP_MIDDLE_LEFT, Position.TOP_MIDDLE_RIGHT]
-const BOTTOM_BENCH = [Position.BOTTOM_BENCH_LEFT, Position.BOTTOM_BENCH_CENTER, Position.BOTTOM_BENCH_RIGHT]
-const BOTTOM_MIDDLE = [Position.BOTTOM_MIDDLE_LEFT, Position.BOTTOM_MIDDLE_RIGHT]
-const BENCH_POSITIONS = [...TOP_BENCH, ...BOTTOM_BENCH]
-
-const TOP_ARENA = [Position.TOP_FRONTLINE_CENTER, ...TOP_MIDDLE, ...TOP_BENCH]
-const BOTTOM_ARENA = [Position.BOTTOM_FRONTLINE_CENTER, ...BOTTOM_MIDDLE, ...BOTTOM_BENCH]
-
-const initBattlePositionMap = (bottomArenaTeam: Spirit[], topArenaTeam: Spirit[]): Map<Position, Spirit> => {
-  return new Map<Position, Spirit>([
-    [Position.TOP_BENCH_LEFT, topArenaTeam[3]],
-    [Position.TOP_BENCH_CENTER, topArenaTeam[4]],
-    [Position.TOP_BENCH_RIGHT, topArenaTeam[5]],
-    [Position.TOP_MIDDLE_LEFT, topArenaTeam[1]],
-    [Position.TOP_MIDDLE_RIGHT, topArenaTeam[2]],
-    [Position.TOP_FRONTLINE_CENTER, topArenaTeam[0]],
-    [Position.BOTTOM_FRONTLINE_CENTER, bottomArenaTeam[0]],
-    [Position.BOTTOM_MIDDLE_LEFT, bottomArenaTeam[1]],
-    [Position.BOTTOM_MIDDLE_RIGHT, bottomArenaTeam[2]],
-    [Position.BOTTOM_BENCH_LEFT, bottomArenaTeam[3]],
-    [Position.BOTTOM_BENCH_CENTER, bottomArenaTeam[4]],
-    [Position.BOTTOM_BENCH_RIGHT, bottomArenaTeam[5]]
-  ]);
-}
+import { ActionType } from '@/models/Action';
 
 export default function BattleScreen() {
-  const { getBattle } = useBattle();
-  const { getTeam } = useTeams();
+  const { currentBattleContext, setCurrentBattle, submitAction } = useBattle();
   const params = useLocalSearchParams();
 
   const battleId = params.battleId as string;
   if (!battleId) {
     throw new Error('battleId was set');
   }
-  const battle = getBattle(battleId);
-  if (!battle) {
-    throw new Error('Battle not found');
-  }
-
-  const teamOne = getTeam(battle.playerOneTeamId)
-  if (!teamOne) {
-    throw new Error('Player One Team not found');
-  }
-
-  const teamTwo = getTeam(battle.playerTwoTeamId)
-  if (!teamTwo) {
-    throw new Error('Player Two Team not found');
-  }
-
   const [attackModalVisible, setAttackModalVisible] = useState(false);
   const [nextTurnModalVisible, setNextTurnModalVisible] = useState(false);
-  const [currentBattle, setCurrentBattle] = useState<Battle>(battle);
   const [swapMode, setSwapMode] = useState(false);
   const [spiritCardModal, setSpiritCardModal] = useState<Spirit | null>(null);
   const [swapPositionId, setSwapPositionId] = useState<Position | undefined>(undefined);
-  const [battlePositionsMap, setBattlePositionsMap] = useState<Map<Position, Spirit>>(initBattlePositionMap(teamOne.spirits, teamTwo.spirits));
 
-  const handleSelectMove = (move: string) => {
+  useEffect(() => {
+    setCurrentBattle(battleId);
+  }, [battleId]);
+
+  if (!currentBattleContext) {
+    return <View><Text>Loading battle...</Text></View>;
+  }
+  const positionMap = currentBattleContext.positionMap;
+
+  const handleSelectMove = (moveId: string) => {
+    submitAction(battleId, {
+      type: ActionType.MOVE,
+      fields: {
+        attackerPosition: Position.BOTTOM_FRONTLINE_CENTER,
+        targetPosition: Position.TOP_FRONTLINE_CENTER,
+        moveId: moveId,
+      }
+    });
     setAttackModalVisible(false);
-    nextTurn();
   };
 
   const clearSwapMode = () => {
     setSwapMode(false);
     setSwapPositionId(undefined);
   };
-
-  const switchSides = (updatedBattlePositionsMap?: Map<Position, Spirit>) => {
-    var newBattlePositionsMap = new Map(battlePositionsMap);
-    if (updatedBattlePositionsMap) {
-      newBattlePositionsMap = new Map(updatedBattlePositionsMap);
-    }
-    console.log("Name:", newBattlePositionsMap.get(Position.BOTTOM_MIDDLE_RIGHT)?.name);
-    const topArenaSpirits = TOP_ARENA.map(position => newBattlePositionsMap.get(position) as Spirit);
-    const bottomArenaSpirits = BOTTOM_ARENA.map(position => newBattlePositionsMap.get(position) as Spirit);
-    TOP_ARENA.forEach((position, index) => {
-      newBattlePositionsMap.set(position, bottomArenaSpirits[index]);
-    });
-    BOTTOM_ARENA.forEach((position, index) => {
-      newBattlePositionsMap.set(position, topArenaSpirits[index]);
-    });
-    setBattlePositionsMap(newBattlePositionsMap);
-  };
-
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const nextTurn = async (battlePositionsMap?: Map<Position, Spirit>) => {
-    await sleep(500);
-    setNextTurnModalVisible(true);
-    const currentBattleCopy = { ...currentBattle };
-    currentBattleCopy.currentTurnUserId = currentBattle.currentTurnUserId === 'playerOne' ? 'playerTwo' : 'playerOne';
-    setCurrentBattle(currentBattleCopy);
-    switchSides(battlePositionsMap);
-  };
-
 
   const handleSwapClick = (spirit: Spirit, positionId: Position) => {
     if (swapPositionId === undefined) {
@@ -140,14 +68,14 @@ export default function BattleScreen() {
           // You can't swap a bench spirit with another bench spirit.
           return;
         }
-        const spiritToSwap = battlePositionsMap.get(swapPositionId) ?? {} as Spirit;
-        const spiritToSwapWith = battlePositionsMap.get(positionId) ?? {} as Spirit;
-        const newBattlePositionsMap = new Map(battlePositionsMap);
-        newBattlePositionsMap.set(swapPositionId, spiritToSwapWith);
-        newBattlePositionsMap.set(positionId, spiritToSwap);
-        setBattlePositionsMap(newBattlePositionsMap);
+        submitAction(battleId, {
+          type: ActionType.SWAP,
+          fields: {
+            SwapInPosition: positionId,
+            SwapOutPosition: swapPositionId,
+          }
+        });
         clearSwapMode();
-        nextTurn(newBattlePositionsMap);
         return;
       }
     }
@@ -167,17 +95,17 @@ export default function BattleScreen() {
   };
 
   const rotateField = () => {
-    const frontlineSpirit = battlePositionsMap.get(Position.BOTTOM_FRONTLINE_CENTER) ?? {} as Spirit;
-    const middleLeftSpirit = battlePositionsMap.get(Position.BOTTOM_MIDDLE_LEFT) ?? {} as Spirit;
-    const middleRightSpirit = battlePositionsMap.get(Position.BOTTOM_MIDDLE_RIGHT) ?? {} as Spirit;
-    battlePositionsMap.set(Position.BOTTOM_FRONTLINE_CENTER, middleLeftSpirit);
-    battlePositionsMap.set(Position.BOTTOM_MIDDLE_LEFT, middleRightSpirit);
-    battlePositionsMap.set(Position.BOTTOM_MIDDLE_RIGHT, frontlineSpirit);
-    setBattlePositionsMap(new Map(battlePositionsMap));
+    submitAction(battleId, {
+      type: ActionType.ROTATE,
+      fields: {},
+    });
   }
 
   function ClickableSpirit({ positionId }: { positionId: Position }) {
-    const spirit = battlePositionsMap.get(positionId) ?? {} as Spirit;
+    if (!currentBattleContext) {
+      return <View />;
+    }
+    const spirit = currentBattleContext.positionMap.get(positionId) ?? {} as Spirit;
     return (
       <Pressable
         onPress={() => handleSpiritClick(spirit, positionId)}
@@ -185,6 +113,43 @@ export default function BattleScreen() {
       >
         {BENCH_POSITIONS.includes(positionId) ? <SpiritBenchCard spirit={spirit} /> : <SpiritBattleCard spirit={spirit} />}
       </Pressable>
+    );
+  }
+
+  // Spirit move modal.
+  interface SpiritMoveModalProps {
+    visible: boolean,
+  };
+  const SpiritMoveModal: React.FC<SpiritMoveModalProps> = ({ visible }: SpiritMoveModalProps) => {
+    return (
+      <Modal visible={visible} transparent={true} animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.menu}>
+            <Text style={styles.menuTitle}>Select a Move</Text>
+            <View style={styles.menuItems}>
+              <View style={styles.menuColumn}>
+                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Punch')}>
+                  <Text style={styles.actionButtonText}>Punch</Text>
+                </Pressable>
+                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Kick')}>
+                  <Text style={styles.actionButtonText}>Kick</Text>
+                </Pressable>
+              </View>
+              <View style={styles.menuColumn}>
+                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Special')}>
+                  <Text style={styles.actionButtonText}>Special</Text>
+                </Pressable>
+                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Support')}>
+                  <Text style={styles.actionButtonText}>Support</Text>
+                </Pressable>
+              </View>
+            </View>
+            <Pressable style={[styles.actionButton, { backgroundColor: 'red' }]} onPress={() => setAttackModalVisible(false)}>
+              <Text style={styles.actionButtonText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     );
   }
 
@@ -238,35 +203,7 @@ export default function BattleScreen() {
         <ClickableSpirit positionId={Position.BOTTOM_BENCH_RIGHT} />
       </View>
 
-      {/* Fighting Move Modal */}
-      <Modal visible={attackModalVisible} transparent={true} animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.menu}>
-            <Text style={styles.menuTitle}>Select a Move</Text>
-            <View style={styles.menuItems}>
-              <View style={styles.menuColumn}>
-                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Punch')}>
-                  <Text style={styles.actionButtonText}>Punch</Text>
-                </Pressable>
-                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Kick')}>
-                  <Text style={styles.actionButtonText}>Kick</Text>
-                </Pressable>
-              </View>
-              <View style={styles.menuColumn}>
-                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Special')}>
-                  <Text style={styles.actionButtonText}>Special</Text>
-                </Pressable>
-                <Pressable style={styles.actionButton} onPress={() => handleSelectMove('Support')}>
-                  <Text style={styles.actionButtonText}>Support</Text>
-                </Pressable>
-              </View>
-            </View>
-            <Pressable style={[styles.actionButton, { backgroundColor: 'red' }]} onPress={() => setAttackModalVisible(false)}>
-              <Text style={styles.actionButtonText}>Cancel</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <SpiritMoveModal visible={attackModalVisible} />
       {/* Spirit Card Modal */}
       { spiritCardModal &&
         <SpiritCard
@@ -280,7 +217,7 @@ export default function BattleScreen() {
         <Modal visible={true} transparent={true} animationType="fade">
           <View style={styles.modalContainer}>
             <View style={styles.menu}>
-              <Text style={styles.menuTitle}>{currentBattle.currentTurnUserId}'s Turn</Text>
+              <Text style={styles.menuTitle}>{currentBattleContext.currentTurnUserId}'s Turn</Text>
               <Pressable 
                 style={[styles.actionButton, { backgroundColor: 'white', marginTop: 20 }]} 
                 onPress={() => setNextTurnModalVisible(false)}
