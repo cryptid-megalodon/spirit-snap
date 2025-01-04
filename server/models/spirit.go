@@ -22,6 +22,7 @@ type Spirit struct {
 	Luck         *int `json:"luck"`
 	Strength     *int `json:"strength"`
 	Toughness    *int `json:"toughness"`
+	HitPoints    *int `json:"hitPoints"`
 }
 
 type StorageInterface interface {
@@ -60,6 +61,7 @@ func ExtractSpiritfromDocData(ctx context.Context, storageClient StorageInterfac
 	luck := getOptionalIntField(doc, "luck")
 	strength := getOptionalIntField(doc, "strength")
 	toughness := getOptionalIntField(doc, "toughness")
+	hitPoints := getOptionalIntField(doc, "hitPoints")
 
 	return Spirit{
 		ID:                id,
@@ -81,6 +83,7 @@ func ExtractSpiritfromDocData(ctx context.Context, storageClient StorageInterfac
 		Luck:         luck,
 		Strength:     strength,
 		Toughness:    toughness,
+		HitPoints:    hitPoints,
 	}
 }
 
