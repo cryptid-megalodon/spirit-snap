@@ -22,7 +22,7 @@ const SpiritBenchCard: React.FC<SpiritBenchCardProps> = ({ spirit }) => {
       </View>
 
       <View style={styles.hpBarContainer}>
-        <HPBar currentHP={100} maxHP={100} />
+        <HPBar currentHP={spirit.currentHitPoints} maxHP={spirit.maxHitPoints} />
       </View>
     </View>
   );

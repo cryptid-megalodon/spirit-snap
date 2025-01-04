@@ -25,7 +25,7 @@ const BattleSpiritCard: React.FC<BattleSpiritCardProps> = ({ spirit }) => {
 
       {/* HP Bar at the Bottom */}
       <View style={styles.hpBarContainer}>
-        <HPBar currentHP={100} maxHP={100} />
+        <HPBar currentHP={spirit.currentHitPoints} maxHP={spirit.maxHitPoints} />
       </View>
     </View>
   );
@@ -33,7 +33,7 @@ const BattleSpiritCard: React.FC<BattleSpiritCardProps> = ({ spirit }) => {
 
 // Dynamic styles to make it square
 const { width } = Dimensions.get('window');
-const size = width * 0.4; // 40% of screen width for demonstration
+const size = width * 0.4;
 
 const styles = StyleSheet.create({
   container: {
