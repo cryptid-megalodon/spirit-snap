@@ -7,6 +7,7 @@ import { Battle, Position } from '@/models/Battle';
 import { Spirit } from '@/models/Spirit';
 import { useTeams } from '@/contexts/TeamContext';
 import { processAction } from '@/utils/ActionProcessor';
+import { Team } from '@/models/Team';
 
 function deepCopyTeam(team: Team): Team {
   return {
