@@ -127,3 +127,26 @@ func (r *Client) GetCollection(ctx context.Context, collectionName string, limit
 func (r *Client) Close() error {
 	return r.Client.Close()
 }
+
+// write this function, this is currently all auto complete
+func (r *Client) GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error) {
+	collection := r.Client.Collection(collectionName)
+	var results []map[string]interface{}
+
+	// Use a batch to retrieve documents
+	for _, id := range ids {
+		docRef := collection.Doc(id)
+		docSnapshot, err := docRef.Get(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve document with ID %s: %w", id, err)
+		}
+
+		if !docSnapshot.Exists() {
+			return nil, fmt.Errorf("document with ID %s does not exist", id)
+		}
+
+		results = append(results, docSnapshot.Data())
+	}
+
+	return results, nil
+}

@@ -154,7 +154,7 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	}
 	log.Printf("Generated image data: %+v", doc)
 	doc["id"] = docId
-	spirit := models.ExtractSpiritfromDocData(ctx, ip.StorageClient, doc)
+	spirit := models.ExtractSpiritfromDocData(ctx, ip.StorageClient, doc, ip.DatastoreClient)
 	return spirit, nil
 }
 

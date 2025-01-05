@@ -1,7 +1,11 @@
 package models
 
-import "context"
+import (
+	"context"
+	"spirit-snap/server/wrappers/datastore"
+)
 
+// This is the model of the Spirit object that will be returned to the client.
 type Spirit struct {
 	ID                *string `json:"id"`
 	Name              *string `json:"name"`
@@ -10,6 +14,7 @@ type Spirit struct {
 	SecondaryType     *string `json:"secondaryType"`
 	OriginalImageURL  *string `json:"originalImageDownloadUrl"`
 	GeneratedImageURL *string `json:"generatedImageDownloadUrl"`
+	Moves             []*Move `json:"moves"`
 
 	Agility      *int `json:"agility"`
 	Arcana       *int `json:"arcana"`
@@ -29,6 +34,11 @@ type StorageInterface interface {
 	GetDownloadURL(ctx context.Context, bucketName, objectName string) (string, error)
 }
 
+type CollectionDatastoreInterface interface {
+	GetCollection(ctx context.Context, collectionName string, limit int, sortField string, sortDirection datastore.Direction, startAfter []interface{}) (*datastore.PageResult, error)
+	GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error)
+}
+
 func getImageURL(ctx context.Context, storageClient StorageInterface, spirit map[string]interface{}, pathField string) *string {
 	if path, ok := spirit[pathField].(string); ok {
 		if url, err := storageClient.GetDownloadURL(ctx, "spirit-snap.appspot.com", path); err == nil {
@@ -38,7 +48,19 @@ func getImageURL(ctx context.Context, storageClient StorageInterface, spirit map
 	return nil
 }
 
-func ExtractSpiritfromDocData(ctx context.Context, storageClient StorageInterface, doc map[string]interface{}) Spirit {
+func getMoves(ctx context.Context, datastoreClient CollectionDatastoreInterface, moveIds []string) []*Move {
+	moveDocs, _ := datastoreClient.GetDocumentsByIds(ctx, "moves", moveIds)
+
+	var moves []*Move
+	for _, doc := range moveDocs {
+		moves = append(moves, ExtractMovefromDocData(ctx, doc))
+	}
+
+	return moves
+}
+
+// change from extract to build
+func ExtractSpiritfromDocData(ctx context.Context, storageClient StorageInterface, doc map[string]interface{}, datastoreClient CollectionDatastoreInterface) Spirit {
 	id := getOptionalStringField(doc, "id")
 	name := getOptionalStringField(doc, "name")
 	description := getOptionalStringField(doc, "description")
@@ -48,6 +70,9 @@ func ExtractSpiritfromDocData(ctx context.Context, storageClient StorageInterfac
 	var originalUrl, generatedUrl *string
 	originalUrl = getImageURL(ctx, storageClient, doc, "originalImageFilePath")
 	generatedUrl = getImageURL(ctx, storageClient, doc, "generatedImageFilePath")
+
+	// We are hardcoding the move ID for now but will eventually get it from the spirit document.
+	moves := getMoves(ctx, datastoreClient, []string{"uZxHBXF6fJVoba63t1Rh"})
 
 	// Extract numeric fields and set default values if not present
 	agility := getOptionalIntField(doc, "agility")
@@ -71,6 +96,7 @@ func ExtractSpiritfromDocData(ctx context.Context, storageClient StorageInterfac
 		SecondaryType:     secondaryType,
 		OriginalImageURL:  originalUrl,
 		GeneratedImageURL: generatedUrl,
+		Moves:              moves,
 
 		Agility:      agility,
 		Arcana:       arcana,
@@ -108,8 +134,8 @@ func getOptionalIntField(spirit map[string]interface{}, fieldName string) *int {
 }
 
 // Helper function to safely extract string fields from the map
-func getOptionalStringField(spirit map[string]interface{}, fieldName string) *string {
-	value, ok := spirit[fieldName]
+func getOptionalStringField(document map[string]interface{}, fieldName string) *string {
+	value, ok := document[fieldName]
 	if !ok || value == nil {
 		return nil
 	}
