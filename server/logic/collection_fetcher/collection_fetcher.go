@@ -13,6 +13,7 @@ type StorageInterface interface {
 
 type CollectionDatastoreInterface interface {
 	GetCollection(ctx context.Context, collectionName string, limit int, sortField string, sortDirection datastore.Direction, startAfter []interface{}) (*datastore.PageResult, error)
+	GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error)
 }
 
 type CollectionFetcher struct {
@@ -36,17 +37,10 @@ func (sp *CollectionFetcher) Fetch(userId *string, limit int, startAfter []inter
 		return nil, err
 	}
 
-	// Get moves collection with pagination (we don't actually want pagination)
-	// movesCollection, movesErr := sp.DatastoreClient.GetCollection(ctx, fmt.Sprintf("moves"), limit, "name", datastore.Desc, startAfter)
-	
-	// movesCollection := sp.DatastoreClient.GetCollection("moves")
-	// result, err := sp.DatastoreClient.GetCollection(ctx, "moves", limit, "imageTimestamp", datastore.Desc, startAfter)
-
-
 	// Get download URLs for each spirit's images
 	var spirits []models.Spirit
 	for _, doc := range result.Documents {
-		spirits = append(spirits, models.ExtractSpiritfromDocData(ctx, sp.StorageClient, doc, sp.DatastoreClient))
+		spirits = append(spirits, models.BuildSpiritfromDocData(ctx, sp.StorageClient, doc, sp.DatastoreClient))
 	}
 	return spirits, nil
 }

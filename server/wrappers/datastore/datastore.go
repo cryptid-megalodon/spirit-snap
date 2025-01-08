@@ -21,9 +21,14 @@ const (
 	Desc Direction = Direction(firestore.Desc)
 )
 
+type firestoreClientInterface interface {
+	Collection(collectionPath string) *firestore.CollectionRef
+	Close() error
+}
+
 // Client is a wrapper around the Firestore Client client that implements Client interface.
 type Client struct {
-	Client *firestore.Client
+	fsClient firestoreClientInterface
 }
 
 func NewClient(ctx context.Context, app *firebase.App) (*Client, error) {
@@ -32,7 +37,7 @@ func NewClient(ctx context.Context, app *firebase.App) (*Client, error) {
 		return nil, fmt.Errorf("error initializing Firestore client: %v", err)
 	}
 	return &Client{
-		Client: firestoreClient,
+		fsClient: firestoreClient,
 	}, nil
 }
 
@@ -47,7 +52,7 @@ func NewClient(ctx context.Context, app *firebase.App) (*Client, error) {
 //   - The ID of the newly added document, or an empty string if the operation fails.
 //   - An error if the operation fails, otherwise nil.
 func (r *Client) AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error) {
-	docRef, _, err := r.Client.Collection(collectionName).Add(ctx, data)
+	docRef, _, err := r.fsClient.Collection(collectionName).Add(ctx, data)
 	if err != nil {
 		return "", err
 	}
@@ -75,7 +80,7 @@ type PageResult struct {
 //   - A PageResult containing the retrieved documents, the last cursor value, and a flag indicating if there are more pages.
 //   - An error if the operation fails.
 func (r *Client) GetCollection(ctx context.Context, collectionName string, limit int, sortField string, sortDirection Direction, startAfter []interface{}) (*PageResult, error) {
-	query := r.Client.Collection(collectionName).
+	query := r.fsClient.Collection(collectionName).
 		OrderBy(sortField, firestore.Direction(sortDirection)).
 		Limit(limit + 1) // Fetch one extra to determine if there are more pages
 
@@ -97,9 +102,9 @@ func (r *Client) GetCollection(ctx context.Context, collectionName string, limit
 		}
 
 		lastDoc = doc
-		doc_data := doc.Data()
-		doc_data["id"] = doc.Ref.ID
-		docs = append(docs, doc_data)
+		docData := doc.Data()
+		docData["id"] = doc.Ref.ID
+		docs = append(docs, docData)
 	}
 
 	hasMore := len(docs) > limit
@@ -125,27 +130,27 @@ func (r *Client) GetCollection(ctx context.Context, collectionName string, limit
 // Returns:
 //   - An error if closing the client fails, otherwise nil.
 func (r *Client) Close() error {
-	return r.Client.Close()
+	return r.fsClient.Close()
 }
 
-// write this function, this is currently all auto complete
 func (r *Client) GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error) {
-	collection := r.Client.Collection(collectionName)
+	collection := r.fsClient.Collection(collectionName)
 	var results []map[string]interface{}
 
 	// Use a batch to retrieve documents
 	for _, id := range ids {
 		docRef := collection.Doc(id)
-		docSnapshot, err := docRef.Get(ctx)
+		doc, err := docRef.Get(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to retrieve document with ID %s: %w", id, err)
 		}
 
-		if !docSnapshot.Exists() {
+		if !doc.Exists() {
 			return nil, fmt.Errorf("document with ID %s does not exist", id)
 		}
-
-		results = append(results, docSnapshot.Data())
+		docData := doc.Data()
+		docData["id"] = doc.Ref.ID
+		results = append(results, docData)
 	}
 
 	return results, nil

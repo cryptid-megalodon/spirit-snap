@@ -22,19 +22,27 @@ func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 	return m.RoundTripFunc(req)
 }
 
-type MockFirestoreClient struct {
-	AddDocumentFunc func(ctx context.Context, collectionName string, data interface{}) (string, error)
-	CloseFunc       func() error
+type MockDatastoreClient struct {
+	AddDocumentFunc       func(ctx context.Context, collectionName string, data interface{}) (string, error)
+	GetDocumentsByIdsFunc func(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error)
+	CloseFunc             func() error
 }
 
-func (m *MockFirestoreClient) AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error) {
+func (m *MockDatastoreClient) AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error) {
 	if m.AddDocumentFunc == nil {
 		return "", errors.New("collection function not defined")
 	}
 	return m.AddDocumentFunc(ctx, collectionName, data)
 }
 
-func (m *MockFirestoreClient) Close() error {
+func (m *MockDatastoreClient) GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error) {
+	if m.GetDocumentsByIdsFunc == nil {
+		return nil, errors.New("collection function not defined")
+	}
+	return m.GetDocumentsByIdsFunc(ctx, collectionName, ids)
+}
+
+func (m *MockDatastoreClient) Close() error {
 	if m.CloseFunc != nil {
 		return m.CloseFunc()
 	}
@@ -88,7 +96,7 @@ func TestProcess_Success(t *testing.T) {
 	}
 
 	// Mock FirestoreClient
-	mockFirestore := &MockFirestoreClient{
+	mockDatastore := &MockDatastoreClient{
 		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) (string, error) {
 			return "test_id", nil
 		},
@@ -136,7 +144,7 @@ func TestProcess_Success(t *testing.T) {
 	}
 
 	// Create ImageProcessor instance
-	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
+	ip := NewImageProcessor(mockStorage, mockDatastore, mockRoundTripper)
 
 	// Execute
 	spirit, err := ip.Process(&base64Image, &userId)
@@ -176,10 +184,10 @@ func TestProcess_FailOnCaptionGeneration(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &MockStorageClient{}
-	mockFirestore := &MockFirestoreClient{}
+	mockDatastore := &MockDatastoreClient{}
 
 	// Create ImageProcessor instance
-	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
+	ip := NewImageProcessor(mockStorage, mockDatastore, mockRoundTripper)
 
 	// Execute
 	_, err := ip.Process(&base64Image, &userId)
@@ -216,10 +224,10 @@ func TestProcess_FailOnMisunderstoodImageCaptionResponse(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &MockStorageClient{}
-	mockFirestore := &MockFirestoreClient{}
+	mockDatastore := &MockDatastoreClient{}
 
 	// Create ImageProcessor instance
-	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
+	ip := NewImageProcessor(mockStorage, mockDatastore, mockRoundTripper)
 
 	// Execute
 	_, err := ip.Process(&base64Image, &userId)
@@ -271,10 +279,10 @@ func TestProcess_FailOnImageGeneration(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &MockStorageClient{}
-	mockFirestore := &MockFirestoreClient{}
+	mockDatastore := &MockDatastoreClient{}
 
 	// Create ImageProcessor instance
-	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
+	ip := NewImageProcessor(mockStorage, mockDatastore, mockRoundTripper)
 
 	// Execute
 	_, err := ip.Process(&base64Image, &userId)
@@ -326,10 +334,10 @@ func TestProcess_FailOnMisunderstoodImageGenerationResponse(t *testing.T) {
 
 	// Mock StorageClient and FirestoreClient
 	mockStorage := &MockStorageClient{}
-	mockFirestore := &MockFirestoreClient{}
+	mockDatastore := &MockDatastoreClient{}
 
 	// Create ImageProcessor instance
-	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
+	ip := NewImageProcessor(mockStorage, mockDatastore, mockRoundTripper)
 
 	// Execute
 	_, err := ip.Process(&base64Image, &userId)
@@ -358,7 +366,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 	}
 
 	// Mock FirestoreClient
-	mockFirestore := &MockFirestoreClient{}
+	mockDatastore := &MockDatastoreClient{}
 
 	// Mock HTTP Client with successful responses
 	mockRoundTripper := &MockRoundTripper{
@@ -403,7 +411,7 @@ func TestProcess_FailOnStorageWrite(t *testing.T) {
 	}
 
 	// Create ImageProcessor instance
-	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
+	ip := NewImageProcessor(mockStorage, mockDatastore, mockRoundTripper)
 
 	// Execute
 	_, err := ip.Process(&base64Image, &userId)
@@ -432,7 +440,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 	}
 
 	// Mock FirestoreClient to fail on AddDocument
-	mockFirestore := &MockFirestoreClient{
+	mockDatastore := &MockDatastoreClient{
 		AddDocumentFunc: func(ctx context.Context, collectionName string, data interface{}) (string, error) {
 			return "", errors.New("firestore write failed")
 		},
@@ -481,7 +489,7 @@ func TestProcess_FailOnFirestoreWrite(t *testing.T) {
 	}
 
 	// Create ImageProcessor instance
-	ip := NewImageProcessor(mockStorage, mockFirestore, mockRoundTripper)
+	ip := NewImageProcessor(mockStorage, mockDatastore, mockRoundTripper)
 
 	// Execute
 	_, err := ip.Process(&base64Image, &userId)
