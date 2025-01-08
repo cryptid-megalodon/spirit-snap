@@ -54,6 +54,7 @@ type StorageInterface interface {
 // It allows for dependency injection and easier testing by allowing mocking of DatastoreClient interactions.
 type DatastoreInterface interface {
 	AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error)
+	GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error)
 	Close() error
 }
 
@@ -154,7 +155,7 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	}
 	log.Printf("Generated image data: %+v", doc)
 	doc["id"] = docId
-	spirit := models.ExtractSpiritfromDocData(ctx, ip.StorageClient, doc, ip.DatastoreClient)
+	spirit := models.BuildSpiritfromDocData(ctx, ip.StorageClient, doc, ip.DatastoreClient)
 	return spirit, nil
 }
 

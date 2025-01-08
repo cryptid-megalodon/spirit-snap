@@ -27,6 +27,11 @@ func (m *MockDatastoreClient) GetCollection(ctx context.Context, collectionName 
 	return args.Get(0).(*datastore.PageResult), args.Error(1)
 }
 
+func (m *MockDatastoreClient) GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error) {
+	args := m.Called(ctx, collectionName, ids)
+	return args.Get(0).([]map[string]interface{}), args.Error(1)
+}
+
 func TestCollectionFetcher_Fetch(t *testing.T) {
 	mockStorage := &MockStorageClient{}
 	mockDatastore := &MockDatastoreClient{}
@@ -36,6 +41,9 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 	limit := 10
 	startAfter := []interface{}{"lastDoc"}
 
+	moveID1 := "move1"
+	moveID2 := "move2"
+
 	testSpirit := map[string]interface{}{
 		"id":                     "spirit1",
 		"name":                   "Test Spirit",
@@ -44,6 +52,7 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 		"secondaryType":          "Type2",
 		"originalImageFilePath":  "original/path",
 		"generatedImageFilePath": "generated/path",
+		"moveIds":                []string{moveID1, moveID2},
 		"agility":                10,
 		"arcana":                 15,
 		"aura":                   20,
@@ -67,6 +76,22 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 	).Return(&datastore.PageResult{
 		Documents: []map[string]interface{}{testSpirit},
 	}, nil)
+
+	moveDocs := []map[string]interface{}{
+		{
+			"id":   "move1",
+			"name": "Test Move",
+		},
+		{
+			"id":   "move2",
+			"name": "Test Move 2	",
+		},
+	}
+	mockDatastore.On("GetDocumentsByIds",
+		mock.Anything,
+		"moves",
+		[]string{"move1", "move2"},
+	).Return(moveDocs, nil)
 
 	mockStorage.On("GetDownloadURL",
 		mock.Anything,
@@ -92,6 +117,8 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 	expectedSecondary := "Type2"
 	expectedOrigURL := "http://original-url"
 	expectedGenURL := "http://generated-url"
+	expectedMoveId1 := moveID1
+	expectedMoveId2 := moveID2
 	expectedAgility := 10
 	expectedArcana := 15
 	expectedAura := 20
@@ -111,6 +138,8 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 	assert.Equal(t, &expectedSecondary, spirits[0].SecondaryType)
 	assert.Equal(t, &expectedOrigURL, spirits[0].OriginalImageURL)
 	assert.Equal(t, &expectedGenURL, spirits[0].GeneratedImageURL)
+	assert.Equal(t, &expectedMoveId1, spirits[0].Moves[0].ID)
+	assert.Equal(t, &expectedMoveId2, spirits[0].Moves[1].ID)
 	assert.Equal(t, &expectedAgility, spirits[0].Agility)
 	assert.Equal(t, &expectedArcana, spirits[0].Arcana)
 	assert.Equal(t, &expectedAura, spirits[0].Aura)
@@ -126,7 +155,6 @@ func TestCollectionFetcher_Fetch(t *testing.T) {
 	mockDatastore.AssertExpectations(t)
 	mockStorage.AssertExpectations(t)
 }
-
 func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 	mockStorage := &MockStorageClient{}
 	mockDatastore := &MockDatastoreClient{}
@@ -144,6 +172,7 @@ func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 		"secondaryType":          nil,
 		"originalImageFilePath":  nil,
 		"generatedImageFilePath": nil,
+		"moveIds":                nil,
 		"agility":                nil,
 		"arcana":                 nil,
 		"aura":                   nil,
@@ -179,6 +208,7 @@ func TestCollectionFetcher_FetchWithNilPaths(t *testing.T) {
 	assert.Nil(t, spirits[0].SecondaryType)
 	assert.Nil(t, spirits[0].OriginalImageURL)
 	assert.Nil(t, spirits[0].GeneratedImageURL)
+	assert.Nil(t, spirits[0].Moves)
 	assert.Nil(t, spirits[0].Agility)
 	assert.Nil(t, spirits[0].Arcana)
 	assert.Nil(t, spirits[0].Aura)
