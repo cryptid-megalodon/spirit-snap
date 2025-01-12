@@ -16,6 +16,7 @@ server/.env
 server/.env-secret
 server/spirit-snap-gcp-key-secret.json
 server/server
+scripts/scores/*
 
 # macOS
 .DS_Store
