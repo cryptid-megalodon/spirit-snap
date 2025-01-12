@@ -41,8 +41,6 @@ func AuthMiddleware(authClient AuthInterface) func(http.Handler) http.Handler {
 
 			// Attach user information to the context
 			ctx := context.WithValue(r.Context(), userContextKey, token)
-			log.Printf("Authorized user: %s", token.UID)
-			log.Printf("ctx: %s", ctx)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
