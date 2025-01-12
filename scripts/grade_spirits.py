@@ -1,4 +1,7 @@
 """
+CAUTION: This script is experimental and may not work as expected. Grades don't fully align with expectations
+when the results are of similar quality. I think the prompting is too complex.
+
 Script to grade spirits. This script uses Anthropic's Claude AI to evaluate spirits.
 Point it at a directory of spirit docs from Firebase and it will create a score report.
 Use it in conjunction with scripts/generate_spirits_with_test_images.py to generate spirits
