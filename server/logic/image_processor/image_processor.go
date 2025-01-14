@@ -2,15 +2,10 @@
 package image_processor
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
-	"os"
 	"spirit-snap/server/models"
 	"strings"
 	"time"
@@ -110,8 +105,8 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	doc["hitPoints"] = spiritData.HitPoints
 
 	// Step 2: Generate cartoon monster image using Replicate
-	generatedImageURI, err := ip.createSpiritImage(&spiritData.ImageGenerationPrompt)
-	if err != nil || generatedImageURI == "" {
+	generatedImage, err := ip.createSpiritImage(&spiritData.ImageGenerationPrompt)
+	if err != nil {
 		return models.Spirit{}, err
 	}
 
@@ -122,17 +117,6 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	decodedOrigImageData, err := base64.StdEncoding.DecodeString(trimmedBase64Image)
 	if err != nil {
 		return models.Spirit{}, fmt.Errorf("failed to decode original base64 image data: %v", err)
-	}
-
-	// Download generated image
-	resp, err := ip.HttpClient.Get(generatedImageURI)
-	if err != nil {
-		return models.Spirit{}, err
-	}
-	defer resp.Body.Close()
-	generatedImage, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return models.Spirit{}, err
 	}
 
 	// Step 3: Upload results to Firebase Storage and Firestore
@@ -153,304 +137,62 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	if err != nil {
 		return models.Spirit{}, err
 	}
-	log.Printf("Generated image data: %+v", doc)
+	// log.Printf("Generated image data: %+v", doc)
 	doc["id"] = docId
 	spirit := models.BuildSpiritfromDocData(ctx, ip.StorageClient, doc, ip.DatastoreClient)
 	return spirit, nil
 }
 
 func (ip *ImageProcessor) generateSpiritData(base64Image *string) (*SpiritData, error) {
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, fmt.Errorf("OpenAI API key not set")
-	}
-
-	requestBody := map[string]interface{}{
-		"model": "gpt-4o-mini",
-		"messages": []map[string]interface{}{
-			{
-				"role": "user",
-				"content": []map[string]interface{}{
-					{
-						"type": "text",
-						"text": prompt,
-					},
-					{
-						"type": "image_url",
-						"image_url": map[string]interface{}{
-							"url": *base64Image,
-						},
-					},
-				},
-			},
-		},
-		"response_format": map[string]interface{}{
-			"type": "json_schema",
-			"json_schema": map[string]interface{}{
-				"name":   "cartoon_creature",
-				"strict": true,
-				"schema": map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"name": map[string]interface{}{
-							"type":        "string",
-							"description": creatureNamePrompt,
-						},
-						"description": map[string]interface{}{
-							"type":        "string",
-							"description": descriptionPrompt,
-						},
-						"image_generation_prompt": map[string]interface{}{
-							"type":        "string",
-							"description": spritePrompt,
-						},
-						"photo_object": map[string]interface{}{
-							"type":        "string",
-							"description": photoObjectPrompt,
-						},
-						"primary_type": map[string]interface{}{
-							"type":        "string",
-							"description": primaryTypePrompt,
-							"enum":        []string{"Fire", "Water", "Rock", "Grass", "Psychic", "Electric", "Fighting"},
-						},
-						"secondary_type": map[string]interface{}{
-							"type":        "string",
-							"description": secondaryTypePrompt,
-							"enum":        []string{"None", "Fire", "Water", "Rock", "Grass", "Psychic", "Electric", "Fighting"},
-						},
-						"height": map[string]interface{}{
-							"type":        "integer",
-							"description": heightPrompt,
-						},
-						"weight": map[string]interface{}{
-							"type":        "integer",
-							"description": weightPrompt,
-						},
-						"strength": map[string]interface{}{
-							"type":        "integer",
-							"description": strengthPrompt,
-						},
-						"toughness": map[string]interface{}{
-							"type":        "integer",
-							"description": toughnessPrompt,
-						},
-						"agility": map[string]interface{}{
-							"type":        "integer",
-							"description": agilityPrompt,
-						},
-						"arcana": map[string]interface{}{
-							"type":        "integer",
-							"description": arcanaPrompt,
-						},
-						"aura": map[string]interface{}{
-							"type":        "integer",
-							"description": auraPrompt,
-						},
-						"charisma": map[string]interface{}{
-							"type":        "integer",
-							"description": charismaPrompt,
-						},
-						"intimidation": map[string]interface{}{
-							"type":        "integer",
-							"description": intimidationPrompt,
-						},
-						"endurance": map[string]interface{}{
-							"type":        "integer",
-							"description": endurancePrompt,
-						},
-						"luck": map[string]interface{}{
-							"type":        "integer",
-							"description": luckPrompt,
-						},
-						"hit_points": map[string]interface{}{
-							"type":        "integer",
-							"description": hitPointsPrompt,
-						},
-					},
-					"required": []string{
-						"name", "description", "image_generation_prompt", "photo_object", "primary_type",
-						"secondary_type", "height", "weight", "strength", "toughness", "agility", "arcana",
-						"aura", "charisma", "intimidation", "endurance", "luck", "hit_points",
-					},
-					"additionalProperties": false,
-				},
-			},
-		},
-	}
-
-	jsonData, err := json.Marshal(requestBody)
+	// "model": "gpt-4o-2024-08-06",
+	// "model": "gpt-4o-2024-11-20",
+	model := "gpt-4o-2024-11-20"
+	spiritData, err := openAiGenerateSpirit(&model, base64Image, ip.HttpClient)
 	if err != nil {
 		return nil, err
 	}
-
-	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := ip.HttpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Check if the status code indicates success
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		bodyBytes, _ := io.ReadAll(resp.Body) // Read the body in case of error for debugging
-		return nil, fmt.Errorf("OpenAI API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
-	}
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		return nil, err
-	}
-
-	spiritData, err := getContentFromOpenAiResponse(result)
-	if err != nil {
-		return nil, fmt.Errorf("unexpected OpenAI API response: %s", err)
-	}
+	fmt.Printf("Spirit Data:\n"+
+		"Name: %s\n"+
+		"Description: %s\n"+
+		"Image Generation Prompt: %s\n"+
+		"Photo Object: %s\n"+
+		"Primary Type: %s\n"+
+		"Secondary Type: %s\n",
+		// "Height: %v\n"+
+		// "Weight: %v\n"+
+		// "Strength: %v\n"+
+		// "Toughness: %v\n"+
+		// "Agility: %v\n"+
+		// "Arcana: %v\n"+
+		// "Aura: %v\n"+
+		// "Charisma: %v\n"+
+		// "Intimidation: %v\n"+
+		// "Endurance: %v\n"+
+		// "Luck: %v\n"+
+		// "Hit Points: %v\n",
+		spiritData.Name,
+		spiritData.Description,
+		spiritData.ImageGenerationPrompt,
+		spiritData.PhotoObject,
+		spiritData.PrimaryType,
+		spiritData.SecondaryType,
+		// spiritData.Height,
+		// spiritData.Weight,
+		// spiritData.Strength,
+		// spiritData.Toughness,
+		// spiritData.Agility,
+		// spiritData.Arcana,
+		// spiritData.Aura,
+		// spiritData.Charisma,
+		// spiritData.Intimidation,
+		// spiritData.Endurance,
+		// spiritData.Luck,
+		// spiritData.HitPoints)
+	)
 	return spiritData, nil
 }
 
-func (ip *ImageProcessor) createSpiritImage(prompt *string) (string, error) {
-	apiKey := os.Getenv("REPLICATE_API_TOKEN")
-	if apiKey == "" {
-		return "", fmt.Errorf("replicate API token not set")
-	}
-
-	requestBody := map[string]interface{}{
-		"input": map[string]interface{}{
-			// Prompt for generated image
-			"prompt": prompt,
-			// Format of the output images
-			"output_format": "webp",
-			// Random seed for reproducible generation
-			"seed": 42,
-			// Run faster predictions with model optimized for speed (currently fp8 quantized); disable to run in original bf16
-			"go_fast": true,
-			// Disable safety checker for generated images.
-			"disable_safety_checker": true,
-			// Approximate number of megapixels for generated image
-			"megapixels": "1",
-			// Number of outputs to generate
-			"num_outputs": 1,
-			// Aspect ratio for the generated image
-			"aspect_ratio": "1:1",
-			// Quality when saving the output images, from 0 to 100 (not relevant for .png outputs)
-			"output_quality": 80,
-			// Number of denoising steps; lower steps produce faster but lower quality results
-			"num_inference_steps": 4,
-		},
-	}
-
-	jsonData, err := json.Marshal(requestBody)
-	if err != nil {
-		return "", err
-	}
-
-	req, err := http.NewRequest("POST", "https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Authorization", "Token "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Prefer", "wait")
-
-	resp, err := ip.HttpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// Check if the status code indicates success
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		bodyBytes, _ := io.ReadAll(resp.Body) // Read the body in case of error for debugging
-		//lint:ignore ST1005 Capitilization is intentional as it is the API provider's name.
-		return "", fmt.Errorf("Replicate API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
-	}
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		return "", err
-	}
-
-	image_uri, err := getImageFromReplicateResponse(result)
-	if err != nil {
-		return "", fmt.Errorf("unexpected replicate API response: %s", err)
-	}
-	return image_uri, nil
-}
-
-// This function takes a JSON response from the OpenAI Completions API and safely
-// retrieves the generated JSON result.
-func getContentFromOpenAiResponse(result map[string]interface{}) (*SpiritData, error) {
-	choices, ok := result["choices"]
-	if !ok {
-		return nil, fmt.Errorf("missing 'choices' key in response")
-	}
-
-	// Check that 'choices' is of the expected type ([]interface{})
-	choiceArray, ok := choices.([]interface{})
-	if !ok || len(choiceArray) == 0 {
-		return nil, fmt.Errorf("'choices' is not an array or is empty")
-	}
-
-	// Access the first choice safely
-	firstChoice, ok := choiceArray[0].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("unexpected format for 'choices[0]'")
-	}
-
-	// Access the "message" field in the first choice
-	message, ok := firstChoice["message"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("missing or invalid 'message' in choices[0]")
-	}
-
-	// Access the "content" field in the "message" map
-	content, ok := message["content"].(string)
-	if !ok {
-		return nil, fmt.Errorf("missing or invalid 'content' in message")
-	}
-	log.Print("OpenAI Response:", content)
-
-	// Create a map to store the parsed JSON
-	var spiritData SpiritData
-
-	err := json.Unmarshal([]byte(content), &spiritData)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling content: %v", err)
-	}
-
-	return &spiritData, nil
-}
-
-// This function takes a JSON response from the Replicate Image Generation API
-// and safely retrieves the base64 image data from it.
-func getImageFromReplicateResponse(result map[string]interface{}) (string, error) {
-	// Access the "output" field directly in the top-level map
-	output, ok := result["output"].([]interface{})
-	if !ok || len(output) == 0 {
-		return "", fmt.Errorf("missing or empty 'output' array")
-	}
-
-	// Retrieve the first item in the "output" array, expecting it to be a string
-	imageData, ok := output[0].(string)
-	if !ok {
-		return "", fmt.Errorf("'output[0]' is not a string containing base64 image data")
-	}
-
-	return imageData, nil
+func (ip *ImageProcessor) createSpiritImage(prompt *string) ([]byte, error) {
+	// return replicatePro1_1GenerateImage(prompt, ip.HttpClient)
+	return googleImagenGenerateImage(prompt, ip.HttpClient)
 }
