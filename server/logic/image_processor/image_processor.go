@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"spirit-snap/server/models"
 	"strings"
@@ -50,6 +51,7 @@ type StorageInterface interface {
 type DatastoreInterface interface {
 	AddDocument(ctx context.Context, collectionName string, data interface{}) (string, error)
 	GetDocumentsByIds(ctx context.Context, collectionName string, ids []string) ([]map[string]interface{}, error)
+	GetDocumentsFilteredByValue(ctx context.Context, collectionName string, fieldName string, value any) ([]map[string]interface{}, error)
 	Close() error
 }
 
@@ -72,6 +74,7 @@ func (ip *ImageProcessor) Close() {
 // This is the implementation for the processImage endpoint. It will be called
 // at high QPS.
 func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.Spirit, error) {
+	ctx := context.Background()
 	doc := make(map[string]interface{})
 	// ISO 8601 Timestamp (human-readable UTC date and time)
 	timestamp := time.Now().UTC().Format(time.RFC3339)
@@ -104,6 +107,34 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	doc["luck"] = spiritData.Luck
 	doc["hitPoints"] = spiritData.HitPoints
 
+	// Determine the Spirit's Move set.
+	primaryTypePossibleMoves, err := ip.DatastoreClient.GetDocumentsFilteredByValue(ctx, "moves", "type", spiritData.PrimaryType)
+	if err != nil {
+		return models.Spirit{}, err
+	}
+	var secondaryTypePossibleMoves []map[string]interface{}
+	if spiritData.SecondaryType != "None" {
+		secondaryTypePossibleMoves, err = ip.DatastoreClient.GetDocumentsFilteredByValue(ctx, "moves", "type", spiritData.SecondaryType)
+		if err != nil {
+			return models.Spirit{}, err
+		}
+	}
+
+	// Randomly select moves from primary and secondary types
+	var selectedMoves []string
+
+	// Select 2 random moves from primary type
+	if len(primaryTypePossibleMoves) > 0 {
+		selectedMoves = append(selectedMoves, selectRandomMoves(primaryTypePossibleMoves, 2)...)
+	}
+	// Select 2 random moves from secondary type if it exists.
+	if len(secondaryTypePossibleMoves) > 0 {
+		selectedMoves = append(selectedMoves, selectRandomMoves(secondaryTypePossibleMoves, 2)...)
+	} else if len(primaryTypePossibleMoves) > 0 {
+		selectedMoves = append(selectedMoves, selectRandomMoves(primaryTypePossibleMoves, 2)...)
+	}
+	doc["moveIds"] = selectedMoves
+
 	// Step 2: Generate cartoon monster image using Replicate
 	generatedImage, err := ip.createSpiritImage(&spiritData.ImageGenerationPrompt)
 	if err != nil {
@@ -120,7 +151,6 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	}
 
 	// Step 3: Upload results to Firebase Storage and Firestore
-	ctx := context.Background()
 	origFilePath := "photos/" + *userId + "/" + originalFilename
 	if err := ip.StorageClient.Write(ctx, "spirit-snap.appspot.com", origFilePath, []byte(decodedOrigImageData), "image/jpeg"); err != nil {
 		return models.Spirit{}, err
@@ -140,6 +170,10 @@ func (ip *ImageProcessor) Process(base64Image *string, userId *string) (models.S
 	// log.Printf("Generated image data: %+v", doc)
 	doc["id"] = docId
 	spirit := models.BuildSpiritfromDocData(ctx, ip.StorageClient, doc, ip.DatastoreClient)
+	fmt.Printf("Move Names:\n")
+	for _, move := range spirit.Moves {
+		fmt.Printf("- %s\n", *move.Name)
+	}
 	return spirit, nil
 }
 
@@ -195,4 +229,18 @@ func (ip *ImageProcessor) generateSpiritData(base64Image *string) (*SpiritData, 
 func (ip *ImageProcessor) createSpiritImage(prompt *string) ([]byte, error) {
 	// return replicatePro1_1GenerateImage(prompt, ip.HttpClient)
 	return googleImagenGenerateImage(prompt, ip.HttpClient)
+}
+
+func selectRandomMoves(possibleMoves []map[string]interface{}, count int) []string {
+	var selectedMoves []string
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < count && len(possibleMoves) > 0; i++ {
+		idx := rand.Intn(len(possibleMoves))
+		if moveID, ok := possibleMoves[idx]["id"].(string); ok {
+			selectedMoves = append(selectedMoves, moveID)
+		}
+		// Remove selected move to avoid duplicates
+		possibleMoves = append(possibleMoves[:idx], possibleMoves[idx+1:]...)
+	}
+	return selectedMoves
 }

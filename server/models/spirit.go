@@ -45,7 +45,7 @@ func getMoves(ctx context.Context, datastoreClient DatastoreInterface, moveIds [
 
 	var moves []*Move
 	for _, doc := range moveDocs {
-		moves = append(moves, BuildMovefromDocData(ctx, doc))
+		moves = append(moves, BuildMovefromDocData(doc))
 	}
 
 	return moves

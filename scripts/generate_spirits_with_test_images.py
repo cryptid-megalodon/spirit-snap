@@ -128,6 +128,8 @@ def main():
         print(f"Spirit description: {spirit_data.get('description')}")
         print(f"Spirit primaryType: {spirit_data.get('primaryType')}")
         print(f"Spirit secondaryType: {spirit_data.get('secondaryType')}")
+        print(f"Spirit Moves: {spirit_data.get('Moves')}")
+        print(f"Spirit json keys: {spirit_data.keys()}")
         # print(f"Spirit originalImageDownloadUrl: {spirit_data.get('originalImageDownloadUrl')}")
         # print(f"Spirit generatedImageDownloadUrl: {spirit_data.get('generatedImageDownloadUrl')}")
         # print(f"Spirit agility: {spirit_data.get('agility')}")

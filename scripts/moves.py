@@ -388,7 +388,7 @@ def main():
   #         'type': 'Sky'
   #     })
   
-  # # Upload Water moves
+  # # Upload Wave moves
   # for move in WaterMoves:
   #     doc_ref = moves_collection.document()
   #     doc_ref.set({
@@ -403,7 +403,7 @@ def main():
   #         'name': move,
   #         'type': 'Flame'
   #     })
-  # # Upload Earth moves
+  # # Upload Stone moves
   # for move in EarthMoves:
   #     doc_ref = moves_collection.document()
   #     doc_ref.set({
@@ -445,8 +445,8 @@ def main():
   #         'name': move,
   #         'type': 'Light'
   #     })
-  # # Upload Ritual moves
-  # for move in RitualMoves:
+  # # Upload Spirit moves
+  # for move in SpiritMoves:
   #     doc_ref = moves_collection.document()
   #     doc_ref.set({
   #         'name': move,
@@ -494,8 +494,8 @@ def main():
   #         'name': move,
   #         'type': 'Spark'
   #     })
-  # # Upload Weave moves
-  # for move in WeaveMoves:
+  # # Upload Thread moves
+  # for move in ThreadMoves:
   #   doc_ref = moves_collection.document()
   #   doc_ref.set({
   #     'name': move,

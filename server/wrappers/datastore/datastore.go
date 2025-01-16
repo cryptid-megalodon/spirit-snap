@@ -155,3 +155,25 @@ func (r *Client) GetDocumentsByIds(ctx context.Context, collectionName string, i
 
 	return results, nil
 }
+
+func (r *Client) GetDocumentsFilteredByValue(ctx context.Context, collectionName string, fieldName string, value any) ([]map[string]interface{}, error) {
+	query := r.fsClient.Collection(collectionName).Where(fieldName, "==", value)
+	iter := query.Documents(ctx)
+	var results []map[string]interface{}
+
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("error fetching documents: %v", err)
+		}
+
+		docData := doc.Data()
+		docData["id"] = doc.Ref.ID
+		results = append(results, docData)
+	}
+
+	return results, nil
+}
