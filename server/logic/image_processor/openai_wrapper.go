@@ -67,7 +67,7 @@ func openAiGenerateSpirit(model_name *string, base64Image *string, httpClient *h
 							"description": primaryTypePrompt,
 							"enum": []string{
 								"Sky",     // wind/freedom/height
-								"Stream",  // water/fluidity/change
+								"Wave",    // water/fluidity/change
 								"Flame",   // fire/passion/warmth
 								"Stone",   // earth/endurance/stability
 								"Frost",   // ice/preservation/cold
@@ -75,14 +75,14 @@ func openAiGenerateSpirit(model_name *string, base64Image *string, httpClient *h
 								"Dream",   // mystery/psychic/illusion
 								"Shadow",  // darkness/stealth/hidden
 								"Light",   // illumination/truth/radiance
-								"Ritual",  // ancestral/tradition/sacred
+								"Spirit",  // essence/commonality/soul
 								"Harmony", // peace/balance/order
 								"Chaos",   // disorder/war/spontaneity
 								"Steel",   // technology/craft/construction
 								"Art",     // creativity/expression/beauty
 								"Song",    // music/sound/rhythm
 								"Spark",   // electricity/energy/power
-								"Weave",   // patterns/connections/textiles
+								"Thread",  // patterns/connections/textiles
 								"Rune",    // knowledge/symbols/writing
 							},
 						},
@@ -92,7 +92,7 @@ func openAiGenerateSpirit(model_name *string, base64Image *string, httpClient *h
 							"enum": []string{
 								"None",    // mono-type
 								"Sky",     // wind/freedom/height
-								"Stream",  // water/fluidity/change
+								"Wave",    // water/fluidity/change
 								"Flame",   // fire/passion/warmth
 								"Stone",   // earth/endurance/stability
 								"Frost",   // ice/preservation/cold
@@ -100,14 +100,14 @@ func openAiGenerateSpirit(model_name *string, base64Image *string, httpClient *h
 								"Dream",   // mystery/psychic/illusion
 								"Shadow",  // darkness/stealth/hidden
 								"Light",   // illumination/truth/radiance
-								"Ritual",  // ancestral/tradition/sacred
+								"Spirit",  // essence/commonality/soul
 								"Harmony", // peace/balance/order
 								"Chaos",   // disorder/war/spontaneity
 								"Steel",   // technology/craft/construction
 								"Art",     // creativity/expression/beauty
 								"Song",    // music/sound/rhythm
 								"Spark",   // electricity/energy/power
-								"Weave",   // patterns/connections/textiles
+								"Thread",  // patterns/connections/textiles
 								"Rune",    // knowledge/symbols/writing
 							},
 						},
