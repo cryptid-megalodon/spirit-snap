@@ -117,7 +117,7 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
           </View>
             <View style={styles.spiritMoves}>
               <View style={styles.spiritMovesRow}>
-                <Text style={styles.spiritMovesTitle}>{spiritData.}</Text>
+                <Text style={styles.spiritMovesTitle}>Punch</Text>
                 <Text style={styles.spiritMovesTitle}>Special</Text>
               </View>
               <View style={styles.spiritMovesRow}>
