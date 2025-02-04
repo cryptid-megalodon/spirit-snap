@@ -10,23 +10,45 @@ interface SpiritCardProps {
 }
 
 const typeImages: { [key: string]: any } = {
-  Fire: require('@/assets/images/typeIcons/fire.png'),
-  Water: require('@/assets/images/typeIcons/water.png'),
-  Rock: require('@/assets/images/typeIcons/rock.png'),
-  Grass: require('@/assets/images/typeIcons/grass.png'),
-  Psychic: require('@/assets/images/typeIcons/psychic.png'),
-  Electric: require('@/assets/images/typeIcons/electric.png'),
-  Fighting: require('@/assets/images/typeIcons/fighting.png'),
+  Art: require('@/assets/images/typeIcons/art-icon.webp'),
+  Chaos: require('@/assets/images/typeIcons/chaos-icon.webp'),
+  Dream: require('@/assets/images/typeIcons/dream-icon.webp'),
+  Flame: require('@/assets/images/typeIcons/flame-icon.webp'),
+  Frost: require('@/assets/images/typeIcons/frost-icon.webp'),
+  Growth: require('@/assets/images/typeIcons/growth-icon.webp'),
+  Harmony: require('@/assets/images/typeIcons/harmony-icon.webp'),
+  Light: require('@/assets/images/typeIcons/light-icon.webp'),
+  Rune: require('@/assets/images/typeIcons/rune-icon.webp'),
+  Shadow: require('@/assets/images/typeIcons/shadow-icon.webp'),
+  Sky: require('@/assets/images/typeIcons/sky-icon.webp'),
+  Song: require('@/assets/images/typeIcons/song-icon.webp'),
+  Spark: require('@/assets/images/typeIcons/spark-icon.webp'),
+  Spirit: require('@/assets/images/typeIcons/spirit-icon.webp'),
+  Steel: require('@/assets/images/typeIcons/steel-icon.webp'),
+  Stone: require('@/assets/images/typeIcons/stone-icon.webp'),
+  Thread: require('@/assets/images/typeIcons/thread-icon.webp'),
+  Wave: require('@/assets/images/typeIcons/wave-icon.webp'),
 };
 
 const typeBackgrounds: { [key: string]: any } = {
-  Fire: require('@/assets/images/background/fire-background.jpeg'),
-  Water: require('@/assets/images/background/water-background.jpeg'),
-  Rock: require('@/assets/images/background/rock-background.jpeg'),
-  Grass: require('@/assets/images/background/grass-background.jpeg'),
-  Psychic: require('@/assets/images/background/psychic-background.jpeg'),
-  Electric: require('@/assets/images/background/electric-background.jpeg'),
-  Fighting: require('@/assets/images/background/fighting-background.jpeg'),
+  Art: require('@/assets/images/background/art-background.jpg'),
+  Chaos: require('@/assets/images/background/chaos-background.jpg'),
+  Dream: require('@/assets/images/background/dream-background.jpg'),
+  Flame: require('@/assets/images/background/flame-background.jpg'),
+  Frost: require('@/assets/images/background/frost-background.jpg'),
+  Growth: require('@/assets/images/background/growth-background.jpg'),
+  Harmony: require('@/assets/images/background/harmony-background.jpg'),
+  Light: require('@/assets/images/background/light-background.jpg'),
+  Rune: require('@/assets/images/background/rune-background.jpg'),
+  Shadow: require('@/assets/images/background/shadow-background.jpg'),
+  Sky: require('@/assets/images/background/sky-background.jpg'),
+  Song: require('@/assets/images/background/song-background.jpg'),
+  Spark: require('@/assets/images/background/spark-background.jpg'),
+  Spirit: require('@/assets/images/background/spirit-background.jpg'),
+  Steel: require('@/assets/images/background/steel-background.jpg'),
+  Stone: require('@/assets/images/background/stone-background.jpg'),
+  Thread: require('@/assets/images/background/thread-background.jpg'),
+  Wave: require('@/assets/images/background/wave-background.jpg'),
 };
 
 const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose }) => {
@@ -95,7 +117,7 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
           </View>
             <View style={styles.spiritMoves}>
               <View style={styles.spiritMovesRow}>
-                <Text style={styles.spiritMovesTitle}>Punch</Text>
+                <Text style={styles.spiritMovesTitle}>{spiritData.}</Text>
                 <Text style={styles.spiritMovesTitle}>Special</Text>
               </View>
               <View style={styles.spiritMovesRow}>
