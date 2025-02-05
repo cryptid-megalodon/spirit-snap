@@ -125,7 +125,7 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
                 <Text style={styles.spiritMovesTitle}>Growl</Text>
               </View>
             </View>
-            <Text style={styles.spiritDescription}>"{truncateDescription(spiritData.description)}" —Spiritologist</Text>
+            <Text style={styles.spiritDescription}>{spiritData.description}</Text>
             <View style={styles.cardFooter}>
               <Text style={styles.footerText}>© 2024 Spirit Snap — Created: date</Text>
             </View>
