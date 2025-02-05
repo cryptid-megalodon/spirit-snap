@@ -1,3 +1,5 @@
+import { Move, MoveRawData, convertMoveRawDataToMove, isCompleteMove} from './Move';
+
 export interface SpiritRawData {
     id: string | null;
     name: string | null;
@@ -6,6 +8,7 @@ export interface SpiritRawData {
     secondaryType: string | null;
     originalImageDownloadUrl: string | null;
     generatedImageDownloadUrl: string | null;
+    moves: MoveRawData[] | null;
 
     agility: number | null;
     arcana: number | null;
@@ -29,6 +32,7 @@ export interface Spirit {
     secondaryType: string;
     originalImageDownloadUrl: string;
     generatedImageDownloadUrl: string;
+    moves: Move[];
 
     agility: number;
     arcana: number;
@@ -65,7 +69,9 @@ export function isCompleteSpirit(spirit: SpiritRawData): boolean {
     spirit.luck != null &&
     spirit.hitPoints != null &&
     spirit.strength != null &&
-    spirit.toughness != null
+    spirit.toughness != null &&
+    spirit.moves != null &&
+    spirit.moves.every(isCompleteMove);
 }
 
 export function convertSpiritRawDataToSpirit(spirit: SpiritRawData): Spirit {
@@ -92,5 +98,7 @@ export function convertSpiritRawDataToSpirit(spirit: SpiritRawData): Spirit {
     maxHitPoints: spirit.hitPoints as number,
     currentHitPoints: spirit.hitPoints as number,
     strength: spirit.strength as number,
-    toughness: spirit.toughness as number  }
+    toughness: spirit.toughness as number,
+    moves: spirit.moves?.map(move => convertMoveRawDataToMove(move)) as Move[],
+   }
 }
