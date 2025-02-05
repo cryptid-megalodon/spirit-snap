@@ -116,14 +116,16 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
             </LinearGradient>
           </View>
             <View style={styles.spiritMoves}>
-              <View style={styles.spiritMovesRow}>
-                <Text style={styles.spiritMovesTitle}>Punch</Text>
-                <Text style={styles.spiritMovesTitle}>Special</Text>
-              </View>
-              <View style={styles.spiritMovesRow}>
-                <Text style={styles.spiritMovesTitle}>Tag Team</Text>
-                <Text style={styles.spiritMovesTitle}>Growl</Text>
-              </View>
+              {spiritData.moves.map((move, index) => (
+                index % 2 === 0 && (
+                  <View key={index} style={styles.spiritMovesRow}>
+                    <Text style={styles.spiritMovesTitle}>{move.name}</Text>
+                    {index + 1 < spiritData.moves.length && (
+                      <Text style={styles.spiritMovesTitle}>{spiritData.moves[index + 1].name}</Text>
+                    )}
+                  </View>
+                )
+              ))}
             </View>
             <Text style={styles.spiritDescription}>{spiritData.description}</Text>
             <View style={styles.cardFooter}>
