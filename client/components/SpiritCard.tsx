@@ -77,10 +77,18 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
               <View style={styles.overlay} />
             <View style={styles.cardHeader}>
               <Text style={styles.spiritName}>{spiritData.name}</Text>
-              <Image
-                source={typeImages[spiritData.primaryType]}
-                style={styles.typeIcon}
-              />
+              <View style={styles.typeIconsContainer}>
+                <Image
+                  source={typeImages[spiritData.primaryType]}
+                  style={[styles.typeIcon, styles.primaryTypeIcon]}
+                />
+                {spiritData.secondaryType && (
+                  <Image
+                    source={typeImages[spiritData.secondaryType]}
+                    style={[styles.typeIcon, styles.secondaryTypeIcon]}
+                  />
+                )}
+              </View>
             </View>
             <View style={styles.cardBody}>
               {/* Generated Image */}
@@ -185,16 +193,25 @@ const styles = StyleSheet.create({
     marginLeft: cardWidth * .03,
     fontFamily: 'LibreBaskerville-Bold',
   },
+  typeIconsContainer: {
+    flexDirection: 'row',
+    marginTop: cardWidth * .012,
+    marginBottom: cardWidth * .012,
+    marginRight: cardWidth * .012,
+  },
   typeIcon: {
     width: cardWidth * .07,
     height: cardWidth * .07,
-    margin: cardWidth * .012,
     borderRadius: 25, // Makes the image circular
-    borderWidth: cardWidth * .002,
-    borderColor: '#fff',
-    backgroundColor: 'black',
     resizeMode: 'contain', // Ensures the entire image is visible
     overflow: 'hidden', // Ensures circular shape without cropping issues
+  },
+  primaryTypeIcon: {
+    zIndex: 1,
+    marginRight: -(cardWidth * .0175),
+},
+  secondaryTypeIcon: {
+    zIndex: 0,
   },
   cardBody: {
     position: 'relative', // allows absolute positioning for the overlay
@@ -259,19 +276,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'LibreBaskerville-Regular',
   },
-  cardFooter: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: cardWidth * .006,
-  },
   spiritDescription: {
     fontSize: cardWidth * .03,
     color: 'white',
     textAlign: 'center',
     padding: cardWidth * .02,
     fontFamily: 'LibreBaskerville-Italic',
+  },
+  cardFooter: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: cardWidth * .006,
   },
   footerText: {
     fontSize: cardWidth * .02,
