@@ -71,8 +71,8 @@ const SpiritCard: React.FC<SpiritCardProps> = ({ visible, spiritData, onClose })
       <View style={styles.modalContainer}>
           <ImageBackground 
             source={typeBackgrounds[spiritData.primaryType]}
-            resizeMode="cover"
-            blurRadius={10}
+            resizeMode="stretch"
+            blurRadius={4}
             style={styles.spiritCard}>
               <View style={styles.overlay} />
             <View style={styles.cardHeader}>
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject, // Ensures the overlay covers the entire card
-    backgroundColor: 'rgba(255, 255, 255, 0.09)', // Semi-transparent white for a pale effect
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Semi-transparent white for a pale effect
   },
   cardHeader: {
     width: '100%',
