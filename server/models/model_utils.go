@@ -41,6 +41,16 @@ func GetOptionalStringArrayField(doc map[string]interface{}, fieldName string) [
 		return nil
 	}
 
+	if arr, ok := value.([]interface{}); ok {
+		result := make([]string, len(arr))
+		for i, v := range arr {
+			if str, ok := v.(string); ok {
+				result[i] = str
+			}
+		}
+		return result
+	}
+
 	if arr, ok := value.([]string); ok {
 		return arr
 	}
