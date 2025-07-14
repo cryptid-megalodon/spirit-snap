@@ -55,11 +55,11 @@ address on linux run ifconfig. The address should start with 192.168.
 Set the EXPO_PUBLIC_BACKEND_SERVER_URL environment variable to correct address
 and port number.
 
-Run the following command to run the Metro server. Make sure it's running
+Run the following command to run the Metro server. Double chec it's running
 in Expo Go mode, not developement mode.
 
 ```bash
-npx expo start
+npx expo start --go
 ```
 
 Scan the QR code with the Expo Go app and select the Expo Go mode.
