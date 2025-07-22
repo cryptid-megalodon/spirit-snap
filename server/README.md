@@ -10,7 +10,7 @@ This project sets up a simple Golang server, containerized using Docker, and dep
 
 ---
 
-## Prerequisites
+## Prerequisites for Deploying to Google Cloud Run
 
 1. **Google Cloud Account**: You need a [Google Cloud](https://cloud.google.com/) account.
 2. **GCP CLI (gcloud)**: Install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and authenticate by running:
@@ -201,3 +201,101 @@ In this example:
 By combining `--set-env-vars` for general environment variables and `--update-secrets` for sensitive data, you maintain both security and flexibility in your deployment.
 
 ---
+
+## API Reference
+
+### Authentication
+
+All endpoints require Firebase Authentication. Include the Firebase ID token in the `Authorization` header:
+
+```
+Authorization: Bearer <firebase_id_token>
+```
+
+### Endpoints
+
+#### POST /ProcessImage
+
+Processes an uploaded image to identify and create a spirit.
+
+**Request Body:**
+```json
+{
+  "Base64Image": "string"
+}
+```
+
+**Parameters:**
+- `Base64Image` (string, required): Base64-encoded image data
+
+**Response:**
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Body:** Spirit object with generated spirit information
+
+**Example Request:**
+```bash
+curl -X POST http://localhost:8080/ProcessImage \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <firebase_id_token>" \
+  -d '{
+    "Base64Image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+  }'
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid request payload or malformed JSON
+- `401 Unauthorized`: Missing or invalid authentication token
+- `405 Method Not Allowed`: HTTP method other than POST used
+- `500 Internal Server Error`: Error during image processing
+
+---
+
+#### GET /FetchSpirits
+
+Retrieves a collection of spirits for the authenticated user.
+
+**Parameters:**
+- None (user ID is extracted from authentication token)
+
+**Response:**
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Body:** Array of Spirit objects (limited to 10 results)
+
+**Example Request:**
+```bash
+curl -X GET http://localhost:8080/FetchSpirits \
+  -H "Authorization: Bearer <firebase_id_token>"
+```
+
+**Example Response:**
+```json
+[
+  {
+    "id": "spirit_123",
+    "name": "Forest Guardian",
+    "description": "A mystical spirit of the ancient woods",
+    "imageUrl": "https://storage.googleapis.com/...",
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+]
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid authentication token
+- `405 Method Not Allowed`: HTTP method other than GET used
+- `500 Internal Server Error`: Error fetching spirits from database
+
+---
+
+### Authentication Setup
+
+To obtain a Firebase ID token for testing:
+
+1. Set up Firebase Authentication in your client application
+2. Sign in a user through Firebase Auth
+3. Call `user.getIdToken()` to retrieve the token
+4. Include the token in the `Authorization` header as shown above
+
+For local development with Expo Go, ensure the `EXPO_PUBLIC_BACKEND_SERVER_URL` environment variable points to your local server (e.g., `http://192.168.1.100:8080`).
