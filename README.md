@@ -5,11 +5,7 @@
 
 ## Gameplay
 
-Spirit Snap is a non-traditional trading card game that allows players to turn any physical object into
-a playable trading card. Players use their phone camera to capture images of any phyiscal object. 
-Through a generative AI pipeline that combines data like image understanding, player context, gameplay lore,
-a unique spirit card is generated. The card includes a customized name, flavor text and relecant types, stats
-and abilities. Players form teams of up to 6 spirits for turn-based battles.
+Spirit Snap is a non-traditional trading card game that allows players to turn any physical object into a playable trading card. Players use their phone camera to capture images of any object. A generative AI pipeline combines image understanding, player context, and gameplay lore to create a unique spirit card. The card includes a customized name, flavor text, relevant types, stats, and abilities. Players form teams of up to six spirits to compete in turn-based battles.
 
 ## Demo
 
